@@ -4,3 +4,6 @@ start:
 
 run:
 	./build/main
+
+test:
+	./build/main ~/Documents/Dev/Codarity/Prebyte/src/test/testfile/test1.cpp ~/Documents/Dev/Codarity/Prebyte/build/test.cpp -D__TIMESTAMP__=123456 -DmethodName=testMethod -Ddependencie=iostream
