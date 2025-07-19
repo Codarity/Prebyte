@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <iostream>
+
 #include "processor/Processor.h"
 
 namespace prebyte {

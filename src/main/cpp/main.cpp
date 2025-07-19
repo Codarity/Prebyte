@@ -1,5 +1,6 @@
 #include <list>
 #include <string>
+#include <iostream>
 #include "parser/CliParser.h"
 #include "datatypes/CliStruct.h"
 #include "datatypes/Context.h"
