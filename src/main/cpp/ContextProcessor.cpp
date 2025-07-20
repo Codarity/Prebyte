@@ -242,22 +242,22 @@ std::map<std::string,std::string> ContextProcessor::get_rules(const Data& rules)
                 if (!value.is_string() && !value.is_bool() && !value.is_int() && !value.is_double()) {
                         throw std::runtime_error("Rule value must be a string, boolean, integer, or double.");
                 }
-                rule_set[rule_name] = value.as_string(); // Convert all values to string for consistency
+                rule_set[rule_name] = value.as_string();
         }
         return rule_set;
 }
 
 void ContextProcessor::add_rule(Rules& rules, std::string rule_name, const Data& rule_data) {
         if (rule_name == "strict_variables") {
-                rules.strict_variables = get_bool(rule_data.as_bool());
+                rules.strict_variables = rule_data.as_bool();
         } else if (rule_name == "set_default_variables") {
-                rules.set_default_variables = get_bool(rule_data.as_bool());
+                rules.set_default_variables = rule_data.as_bool();
         } else if (rule_name == "trim_start") {
-                rules.trim_start = get_bool(rule_data.as_bool());
+                rules.trim_start = rule_data.as_bool();
         } else if (rule_name == "trim_end") {
-                rules.trim_end = get_bool(rule_data.as_bool());
+                rules.trim_end = rule_data.as_bool();
         } else if (rule_name == "allow_env") {
-                rules.allow_env = get_bool(rule_data.as_bool());
+                rules.allow_env = rule_data.as_bool();
         } else if (rule_name == "debug_level") {
                 std::string debug_level_str = get_string(rule_data);
                 if (debug_level_str == "ERROR") {
@@ -297,13 +297,6 @@ void ContextProcessor::add_rule(Rules& rules, std::string rule_name, const Data&
         } else {
                 throw std::runtime_error("Unknown rule: " + rule_name);
         }
-}
-
-bool ContextProcessor::get_bool(Data data) const {
-        if (!data.is_bool()) {
-                throw std::runtime_error("Expected boolean value.");
-        }
-        return data.is_bool();
 }
 
 std::string ContextProcessor::get_string(Data data) const {

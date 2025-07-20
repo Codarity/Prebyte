@@ -123,6 +123,10 @@ void Preprocessor::do_action(const std::string& action) {
         if (context.ignore.find(action) != context.ignore.end()) {
                 return;
         }
+        if (process_variables.is_valid(action)) {
+                output += process_variables.get_value(action);
+                return;
+        }
         if (context.variables.find(action) != context.variables.end()) {
                 output += get_variable(context.variables[action]);
                 return;

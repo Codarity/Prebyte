@@ -6,6 +6,8 @@
 #include "ContextProcessor.h"
 #include "Executer.h"
 
+const std::string VERSION = "v0.1.0";
+
 
 int main(int argc, char** argv) {
         try {
