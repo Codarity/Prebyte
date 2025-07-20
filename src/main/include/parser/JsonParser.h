@@ -1,10 +1,13 @@
 #pragma once
 
-#include "parser/FileParser.h"
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class JsonParser : public FileParser {
+class JsonParser : public Parser {
 public:
     JsonParser() = default;
     ~JsonParser() override = default;

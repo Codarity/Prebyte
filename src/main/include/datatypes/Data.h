@@ -38,7 +38,7 @@ public:
     bool is_map() const { return std::holds_alternative<Map>(value); }
     bool is_array() const { return std::holds_alternative<Array>(value); }
 
-    const std::string& as_string() const;
+    std::string as_string() const;
     int as_int() const;
     double as_double() const;
     bool as_bool() const;

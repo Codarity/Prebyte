@@ -1,10 +1,14 @@
 #pragma once
 
-#include "parser/FileParser.h"
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class IniParser : public FileParser {
+class IniParser : public Parser {
 public:
     IniParser() = default;
     ~IniParser() override = default;

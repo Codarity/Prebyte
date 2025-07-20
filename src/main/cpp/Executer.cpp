@@ -9,6 +9,7 @@ Executer::Executer(Context context)
 void Executer::execute() {
         switch (context.action_type) {
                 case ActionType::HELP:
+                case ActionType::HARD_HELP:
                 case ActionType::EXPLAIN:
                 case ActionType::VERSION:
                 case ActionType::LIST_RULES:

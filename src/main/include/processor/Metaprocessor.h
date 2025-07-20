@@ -11,6 +11,7 @@ class Metaprocessor : public Processor {
 private:
         void explain();
         void help();
+        void hard_help();
         void version();
         void list_rules();
         void list_variables();

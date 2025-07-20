@@ -1,10 +1,15 @@
 #pragma once
 
-#include "parser/FileParser.h"
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
+#include <vector>
+#include <algorithm>
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class CsvParser : public FileParser {
+class CsvParser : public Parser {
 public:
     CsvParser() = default;
     ~CsvParser() override = default;

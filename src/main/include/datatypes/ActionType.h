@@ -3,6 +3,7 @@
 namespace prebyte {
 
 enum class ActionType {
+        NONE,
         STDIN_STDOUT,
         FILE_IN_STDOUT,
         STDIN_FILE_OUT,
@@ -11,7 +12,8 @@ enum class ActionType {
         HELP,
         VERSION,
         LIST_RULES,
-        LIST_VARIABLES
+        LIST_VARIABLES,
+        HARD_HELP
 };
 
 }

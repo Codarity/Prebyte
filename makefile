@@ -1,6 +1,6 @@
 start:
 	mkdir -p build
-	clang++ -std=c++20 -Isrc/main/include -g -o build/main src/main/cpp/*.cpp src/main/cpp/datatypes/*.cpp src/main/cpp/parser/*.cpp src/main/cpp/processor/*.cpp
+	clang++ -std=c++23 -I/home/leodora/.rqp/cpptoml/include -Isrc/main/include -g -o build/main src/main/cpp/*.cpp src/main/cpp/datatypes/*.cpp src/main/cpp/parser/*.cpp src/main/cpp/processor/*.cpp -lpugixml -lyaml-cpp
 
 run:
 	./build/main

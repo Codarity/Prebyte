@@ -1,10 +1,12 @@
 #pragma once
 
-#include "parser/FileParser.h"
+#include <cpptoml.h>
+#include <fstream>
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class TomlParser : public FileParser {
+class TomlParser : public Parser {
 public:
     TomlParser() = default;
     ~TomlParser() override = default;

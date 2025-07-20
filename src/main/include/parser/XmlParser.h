@@ -1,10 +1,14 @@
 #pragma once
 
-#include "parser/FileParser.h"
+
+#include <pugixml.hpp>
+#include <fstream>
+
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class XmlParser : public FileParser {
+class XmlParser : public Parser {
 public:
     XmlParser() = default;
     ~XmlParser() override = default;

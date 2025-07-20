@@ -1,18 +1,26 @@
 #pragma once
 
-#include <filesystem>
 #include <string>
+#include <filesystem>
+
 #include "datatypes/Data.h"
+#include "parser/Parser.h"
+#include "parser/JsonParser.h"
+#include "parser/XmlParser.h"
+#include "parser/YamlParser.h"
+#include "parser/CsvParser.h"
+#include "parser/IniParser.h"
+#include "parser/EnvParser.h"
+#include "parser/TomlParser.h"
 
 namespace prebyte {
 
 class FileParser {
 public:
-    virtual ~FileParser() = default;
-
-    virtual Data parse(const std::filesystem::path& filepath) = 0;
-
-    virtual bool can_parse(const std::filesystem::path& filepath) const = 0;
+        FileParser() = default;
+        Data parse(const std::string& filePath);
+private:
+        Data parseFile(const std::string& filePath, Parser* parser);
 };
 
 }

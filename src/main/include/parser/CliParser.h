@@ -1,14 +1,19 @@
 #pragma once
 
-#include "datatypes/CliStruct.h"
+#include <filesystem>
+#include <iostream>
 #include <string>
 #include <list>
+
+#include "datatypes/CliStruct.h"
 
 namespace prebyte {
 
 class CliParser {
 private:
-        std::string findAction(const std::string& arg);
+        CliStruct cli_struct;
+        ActionType findAction(std::list<std::string>* args);
+        void process(const std::vector<std::string>& args);
 
 public:
         CliStruct parse(std::list<std::string> args);

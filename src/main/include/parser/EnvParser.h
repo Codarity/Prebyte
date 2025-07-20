@@ -1,10 +1,15 @@
 #pragma once
 
-#include "parser/FileParser.h"
+
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class EnvParser : public FileParser {
+class EnvParser : public Parser {
 public:
     EnvParser() = default;
     ~EnvParser() override = default;

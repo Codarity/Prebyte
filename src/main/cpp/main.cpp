@@ -1,6 +1,5 @@
 #include <list>
 #include <string>
-#include <iostream>
 #include "parser/CliParser.h"
 #include "datatypes/CliStruct.h"
 #include "datatypes/Context.h"
@@ -10,13 +9,6 @@
 
 int main(int argc, char** argv) {
         try {
-                if (argc < 2) {
-                        prebyte::Context context;
-                        context.action_type = prebyte::ActionType::HELP;
-                        prebyte::Executer executer(context); 
-                        executer.execute();
-                        return 1;
-                }
                 std::list<std::string> args;
                 for(int i = 1; i < argc; ++i) {
                         args.push_back(argv[i]);
@@ -28,7 +20,8 @@ int main(int argc, char** argv) {
                 prebyte::Context context = context_processor.process();
                 prebyte::Executer executer(context);
                 executer.execute();
-        } catch (...) {
+        } catch (const std::exception& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
                 return 1;
         }
         return 0;

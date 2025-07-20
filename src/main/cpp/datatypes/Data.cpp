@@ -2,22 +2,50 @@
 
 namespace prebyte {
 
-const std::string& Data::as_string() const {
-    if (!is_string()) throw std::bad_variant_access();
-    return std::get<std::string>(value);
+std::string Data::as_string() const {
+    if (is_bool())   return std::get<bool>(value) ? "true" : "false";
+    if (is_int())    return std::to_string(std::get<int>(value));
+    if (is_double()) return std::to_string(std::get<double>(value));
+    if (is_string()) return std::get<std::string>(value);
+    throw std::bad_variant_access();
 }
 
 int Data::as_int() const {
+    if (is_string()) {
+        const auto& str = std::get<std::string>(value);
+        try {
+            return std::stoi(str);
+        } catch (const std::invalid_argument&) {
+            throw std::bad_variant_access();
+        } catch (const std::out_of_range&) {
+            throw std::bad_variant_access();
+        }
+    }
     if (!is_int()) throw std::bad_variant_access();
     return std::get<int>(value);
 }
 
 double Data::as_double() const {
+    if (is_string()) {
+        const auto& str = std::get<std::string>(value);
+        try {
+            return std::stod(str);
+        } catch (const std::invalid_argument&) {
+            throw std::bad_variant_access();
+        } catch (const std::out_of_range&) {
+            throw std::bad_variant_access();
+        }
+    }
     if (!is_double()) throw std::bad_variant_access();
     return std::get<double>(value);
 }
 
 bool Data::as_bool() const {
+    if (is_string()) {
+        const auto& str = std::get<std::string>(value);
+        if (str == "true" || str == "1") return true;
+        if (str == "false" || str == "0") return false;
+    }
     if (!is_bool()) throw std::bad_variant_access();
     return std::get<bool>(value);
 }

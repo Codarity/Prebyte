@@ -1,10 +1,15 @@
 #pragma once
 
-#include "parser/FileParser.h"
+
+#include <yaml-cpp/yaml.h>
+#include <fstream>
+#include <stdexcept>
+
+#include "parser/Parser.h"
 
 namespace prebyte {
 
-class YamlParser : public FileParser {
+class YamlParser : public Parser {
 public:
     YamlParser() = default;
     ~YamlParser() override = default;
