@@ -63,4 +63,14 @@ bool TomlParser::can_parse(const std::filesystem::path& filepath) const {
     return true;
 }
 
+Data TomlParser::parse_string(const std::string& input) {
+        try {
+                std::istringstream input_stream(input);
+                auto table = cpptoml::parser(input_stream).parse();
+                return convert_table(table);
+        } catch (const std::exception& e) {
+                throw std::runtime_error("Failed to parse TOML string: " + std::string(e.what()));
+        }
+}
+
 } // namespace prebyte

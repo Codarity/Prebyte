@@ -95,4 +95,64 @@ bool CsvParser::can_parse(const std::filesystem::path& filepath) const {
     return true;
 }
 
+Data CsvParser::parse_string(const std::string& input) {
+    std::istringstream stream(input);
+    std::string line;
+    std::vector<std::string> headers;
+
+    Data result = Data::Array{};
+
+    if (std::getline(stream, line)) {
+        std::stringstream ss(line);
+        std::string cell;
+        while (std::getline(ss, cell, ',')) {
+            headers.push_back(cell);
+        }
+        if (headers.empty()) {
+            throw std::runtime_error("No headers found in first line of CSV string");
+        }
+    } else {
+        throw std::runtime_error("CSV string is empty");
+    }
+
+    while (std::getline(stream, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string cell;
+        size_t index = 0;
+
+        Data row = Data::Map{};
+
+        while (std::getline(ss, cell, ',')) {
+            if (index >= headers.size()) break;
+
+            const std::string& key = headers[index];
+
+            if (cell == "true" || cell == "false") {
+                row[key] = (cell == "true");
+            } else if (cell.find('.') != std::string::npos) {
+                try {
+                    row[key] = std::stod(cell);
+                } catch (...) {
+                    row[key] = cell;
+                }
+            } else {
+                try {
+                    row[key] = std::stoi(cell);
+                } catch (...) {
+                    row[key] = cell;
+                }
+            }
+
+            ++index;
+        }
+
+        Data::Array arr = result.as_array();
+        arr.push_back(row);
+    }
+
+    return result;
+}
+
 } // namespace prebyte

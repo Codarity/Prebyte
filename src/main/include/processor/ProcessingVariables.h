@@ -54,37 +54,35 @@ private:
 
         std::tm getLocalTime() const;
 
-        std::string __DATE() const;
-        std::string __TIME() const;
-        std::string __LINE() const;
-        std::string __DATETIME() const;
-        std::string __VERSION() const;
-        std::string __YEAR() const;
-        std::string __MONTH() const;
-        std::string __DAY() const;
-        std::string __HOUR() const;
-        std::string __MINUTE() const;
-        std::string __SECOND() const;
-        std::string __UNIXTIMESTAMP() const;
-        std::string __USER() const;
-        std::string __HOST() const;
-        std::string __PWD() const;
-        std::string __FILE() const;
-        std::string __FILE_NAME() const;
-        std::string __FILE_PATH() const;
-        std::string __FILE_EXT() const;
-        std::string __FILE_SIZE() const;
-        std::string __FILE_CREATED() const;
+        std::string _DATE() const;
+        std::string _TIME() const;
+        std::string _LINE() const;
+        std::string _DATETIME() const;
+        std::string _VERSION() const;
+        std::string _YEAR() const;
+        std::string _MONTH() const;
+        std::string _DAY() const;
+        std::string _HOUR() const;
+        std::string _MINUTE() const;
+        std::string _SECOND() const;
+        std::string _UNIXTIMESTAMP() const;
+        std::string _USER() const;
+        std::string _HOST() const;
+        std::string _PWD() const;
+        std::string _FILE() const;
+        std::string _FILE_NAME() const;
+        std::string _FILE_PATH() const;
+        std::string _FILE_EXT() const;
+        std::string _FILE_SIZE() const;
+        std::string _FILE_CREATED() const;
 
 
 public:
-        ProcessingVariables(Context context);
+        ProcessingVariables(Context* context);
         bool is_valid(const std::string& key) const;
         std::string get_value(const std::string& key) const;
 private:
 
 };
-
-
 
 }

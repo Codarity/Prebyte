@@ -60,4 +60,15 @@ bool XmlParser::can_parse(const std::filesystem::path& filepath) const {
     return doc.load_file(filepath.c_str());
 }
 
+Data XmlParser::parse_string(const std::string& input) {
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_string(input.c_str());
+
+    if (!result) {
+        throw std::runtime_error("Failed to parse XML string: " + std::string(result.description()));
+    }
+
+    return convert_xml_node(doc.document_element());
+}
+
 } // namespace prebyte

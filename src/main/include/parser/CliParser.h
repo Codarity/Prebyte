@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <spdlog/spdlog.h>
 
 #include "datatypes/CliStruct.h"
 

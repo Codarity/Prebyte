@@ -62,4 +62,15 @@ bool JsonParser::can_parse(const std::filesystem::path& filepath) const {
     return true;
 }
 
+Data JsonParser::parse_string(const std::string& input) {
+    nlohmann::json j;
+    try {
+        j = nlohmann::json::parse(input);
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Failed to parse JSON string: " + std::string(e.what()));
+    }
+
+    return convert_json(j);
+}
+
 } // namespace prebyte

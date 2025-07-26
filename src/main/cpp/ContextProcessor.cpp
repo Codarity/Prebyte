@@ -7,6 +7,7 @@ ContextProcessor::ContextProcessor(const CliStruct& cli_struct)
 }
 
 Context ContextProcessor::process() {
+        this->context.rules.init();
         load_action_type();
         load_settings();
         load_profiles();
@@ -45,18 +46,24 @@ std::optional<std::filesystem::path> ContextProcessor::find_settings_file(const 
 }
 
 void ContextProcessor::load_settings() {
-        std::string path_str = getenv("HOME") + std::string("/.prebyte");
-        auto settings_path = find_settings_file(path_str);
-        if (!settings_path) {
-                return;
+        std::filesystem::path settings_path;
+        if (!cli_struct.settings_file.empty()) {
+                settings_path = cli_struct.settings_file;
+        } else {
+                std::string path_str = getenv("HOME") + std::string("/.prebyte");
+                auto std_settings_path = find_settings_file(path_str);
+                if (!std_settings_path) {
+                        return;
+                }
+                settings_path = *std_settings_path;
         }
         FileParser file_parser;
-        Data settings_data = file_parser.parse(*settings_path);
+        Data settings_data = file_parser.parse(settings_path);
         if (settings_data.is_map()) {
                 Data variables = settings_data["variables"];
-                Data profiles = settings_data["profiles"];
-                Data ignore = settings_data["ignore"];
-                Data rules = settings_data["rules"];
+                Data profiles  = settings_data["profiles"];
+                Data ignore    = settings_data["ignore"];
+                Data rules     = settings_data["rules"];
                 if (!variables.is_null()) {
                         context.variables = get_variables(variables);
                 }
@@ -79,13 +86,13 @@ void ContextProcessor::load_profiles() {
         for(const std::string profile_name : cli_struct.profiles) {
                 Profile profile = context.profiles[profile_name];
                 for (const auto& [key,value] : profile.get_variables()) {
-                        context.variables[key] = value;
+                        context.variables[key] = {value};
                 }
                 for (const auto& ignore_item : profile.get_ignore()) {
                         context.ignore.insert(ignore_item);
                 }
                 for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                        this->add_rule(context.rules, rule_name, Data(rule_value));
+                        context.rules.add_rule(rule_name, Data(rule_value));
                 }
         }
 }
@@ -100,12 +107,27 @@ void ContextProcessor::load_variables() {
                         inject_variables(variable);
                         continue;
                 }
+
                 std::string var_name = variable.substr(0, pos);
                 std::string var_value = variable.substr(pos + 1);
                 if (var_name.empty() || var_value.empty()) {
                         throw std::runtime_error("Variable name or value cannot be empty.");
                 }
-                context.variables[var_name] = var_value;
+
+                if (var_value[0] == '[' && var_value.back() == ']') {
+                        var_value = var_value.substr(1, var_value.size() - 2);
+                        std::vector<std::string> values;
+                        std::istringstream ss(var_value);
+                        std::string item;
+                        while (std::getline(ss, item, ',')) {
+                                if (!item.empty()) {
+                                        values.push_back(item);
+                                }
+                        }
+                        context.variables[var_name] = values;
+                        continue;
+                }
+                context.variables[var_name] = {var_value};
         }
 }
 
@@ -123,7 +145,7 @@ void ContextProcessor::inject_variables(const std::string& filePath) {
                 if (variable_name.empty()) {
                         throw std::runtime_error("Variable name cannot be empty.");
                 }
-                context.variables[variable_name] = value.as_string();
+                context.variables[variable_name] = {value.as_string()};
         }
 }
 
@@ -153,18 +175,18 @@ void ContextProcessor::load_rules() {
                 if (rule_name.empty() || rule_value.empty()) {
                         throw std::runtime_error("Rule name or value cannot be empty.");
                 }
-                add_rule(context.rules, rule_name, Data(rule_value));
+                context.rules.add_rule(rule_name, Data(rule_value));
         }
 }
 
 void ContextProcessor::load_rules(const std::map<std::string, std::string>& rules) {
         for (const auto& [rule_name, rule_data] : rules) {
-                add_rule(context.rules, rule_name, Data(rule_data));
+                context.rules.add_rule(rule_name, Data(rule_data));
         }
 }
 
-std::map<std::string,std::string> ContextProcessor::get_variables(const Data& variables) {
-        std::map<std::string,std::string> variable_list;
+std::map<std::string,std::vector<std::string>> ContextProcessor::get_variables(const Data& variables) {
+        std::map<std::string,std::vector<std::string>> variable_list;
         for (const auto& [key, value] : variables.as_map()) {
                 std::string variable_name = key;
                 if (variable_name.empty()) {
@@ -174,13 +196,31 @@ std::map<std::string,std::string> ContextProcessor::get_variables(const Data& va
                         throw std::runtime_error("Variable value cannot be null.");
                 }
                 if (value.is_string()) {
-                        variable_list[variable_name] = value.as_string();
+                        variable_list[variable_name] = {value.as_string()};
                 } else if (value.is_int()) {
-                        variable_list[variable_name] = std::to_string(value.as_int());
+                        variable_list[variable_name] = {std::to_string(value.as_int())};
                 } else if (value.is_double()) {
-                        variable_list[variable_name] = std::to_string(value.as_double());
+                        variable_list[variable_name] = {std::to_string(value.as_double())};
                 } else if (value.is_bool()) {
-                        variable_list[variable_name] = value.as_bool() ? "true" : "false";
+                        variable_list[variable_name] = {value.as_bool() ? "true" : "false"};
+                } else if (value.is_array()) {
+                        std::vector<std::string> values;
+                        for (const auto& item : value.as_array()) {
+                                if (item.is_null() || item.is_array() || item.is_map()) {
+                                        throw std::runtime_error("Variable value cannot be null.");
+                                }
+                                if (item.is_string()) {
+                                        variable_list[variable_name] = {item.as_string()};
+                                } else if (item.is_int()) {
+                                        variable_list[variable_name] = {std::to_string(item.as_int())};
+                                } else if (item.is_double()) {
+                                        variable_list[variable_name] = {std::to_string(item.as_double())};
+                                } else if (item.is_bool()) {
+                                        variable_list[variable_name] = {item.as_bool() ? "true" : "false"};
+                                }
+                                values.push_back(item.as_string());
+                        }
+                        variable_list[variable_name] = values;
                 } else {
                         throw std::runtime_error("Unsupported variable type for variable: " + variable_name);
                 }
@@ -247,77 +287,5 @@ std::map<std::string,std::string> ContextProcessor::get_rules(const Data& rules)
         return rule_set;
 }
 
-void ContextProcessor::add_rule(Rules& rules, std::string rule_name, const Data& rule_data) {
-        if (rule_name == "strict_variables") {
-                rules.strict_variables = rule_data.as_bool();
-        } else if (rule_name == "set_default_variables") {
-                rules.set_default_variables = rule_data.as_bool();
-        } else if (rule_name == "trim_start") {
-                rules.trim_start = rule_data.as_bool();
-        } else if (rule_name == "trim_end") {
-                rules.trim_end = rule_data.as_bool();
-        } else if (rule_name == "allow_env") {
-                rules.allow_env = rule_data.as_bool();
-        } else if (rule_name == "debug_level") {
-                std::string debug_level_str = get_string(rule_data);
-                if (debug_level_str == "ERROR") {
-                        rules.debug_level = DebugLevel::ERROR;
-                } else if (debug_level_str == "WARNING") {
-                        rules.debug_level = DebugLevel::WARNING;
-                } else if (debug_level_str == "INFO") {
-                        rules.debug_level = DebugLevel::INFO;
-                } else if (debug_level_str == "DEBUG") {
-                        rules.debug_level = DebugLevel::DEBUG;
-                } else {
-                        throw std::runtime_error("Unknown debug level: " + debug_level_str);
-                }
-        } else if (rule_name == "max_variable_length") {
-                rules.max_variable_length = get_int(rule_data);
-        } else if (rule_name == "default_variable_value") {
-                rules.default_variable_value = get_string(rule_data);
-        } else if (rule_name == "variable_prefix") {
-                rules.variable_prefix = get_string(rule_data);
-        } else if (rule_name == "variable_suffix") {
-                rules.variable_suffix = get_string(rule_data);
-        } else if (rule_name == "include_path") {
-                rules.include_path = get_string(rule_data);
-        } else if (rule_name == "benchmark") {
-                std::string benchmark_str = get_string(rule_data);
-                if (benchmark_str == "NONE") {
-                        rules.benchmark = Benchmark::NONE;
-                } else if (benchmark_str == "TIME") {
-                        rules.benchmark = Benchmark::TIME;
-                } else if (benchmark_str == "MEMORY") {
-                        rules.benchmark = Benchmark::MEMORY;
-                } else if (benchmark_str == "ALL") {
-                        rules.benchmark = Benchmark::ALL;
-                } else {
-                        throw std::runtime_error("Unknown benchmark type: " + benchmark_str);
-                }
-        } else {
-                throw std::runtime_error("Unknown rule: " + rule_name);
-        }
-}
-
-std::string ContextProcessor::get_string(Data data) const {
-        if (!data.is_string()) {
-                throw std::runtime_error("Expected string value.");
-        }
-        return data.as_string();
-}
-
-int ContextProcessor::get_int(Data data) const {
-        if (!data.is_int()) {
-                throw std::runtime_error("Expected integer value.");
-        }
-        return data.as_int();
-}
-
-double ContextProcessor::get_double(Data data) const {
-        if (!data.is_double()) {
-                throw std::runtime_error("Expected double value.");
-        }
-        return data.as_double();
-}
 
 } // namespace prebyte

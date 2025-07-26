@@ -9,16 +9,22 @@ Data convert_yaml(const YAML::Node& node) {
     if (node.IsNull()) {
         return Data();
     } else if (node.IsScalar()) {
-        std::string value = node.as<std::string>();
+        std::string value = node.Scalar();
+
         if (value == "true" || value == "false") {
             return Data(value == "true");
         }
-        try {
+
+        static const std::regex int_regex(R"(^-?\d+$)");
+        if (std::regex_match(value, int_regex)) {
             return Data(std::stoi(value));
-        } catch (...) {}
-        try {
+        }
+
+        static const std::regex float_regex(R"(^-?\d+\.\d+$)");
+        if (std::regex_match(value, float_regex)) {
             return Data(std::stod(value));
-        } catch (...) {}
+        }
+
         return Data(value);
     } else if (node.IsSequence()) {
         Data::Array arr;
@@ -36,6 +42,15 @@ Data convert_yaml(const YAML::Node& node) {
     }
 
     throw std::runtime_error("Unsupported YAML node type");
+}
+
+Data YamlParser::parse_string(const std::string& yaml_string) {
+    try {
+        YAML::Node root = YAML::Load(yaml_string);
+        return convert_yaml(root);
+    } catch (const YAML::Exception& e) {
+        throw std::runtime_error("Failed to parse YAML string: " + std::string(e.what()));
+    }
 }
 
 Data YamlParser::parse(const std::filesystem::path& filepath) {

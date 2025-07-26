@@ -2,8 +2,12 @@
 
 namespace prebyte {
 
+Metaprocessor::Metaprocessor(Context* context) : Processor() {
+        this->context = context;
+}
+
 void Metaprocessor::process() {
-        switch (context.action_type) {
+        switch (context->action_type) {
         case ActionType::EXPLAIN:
                 explain();
                 break;
@@ -23,7 +27,7 @@ void Metaprocessor::process() {
                 list_variables();
                 break;
         default:
-                std::cerr << "Unknown action type: " << static_cast<int>(context.action_type) << std::endl;
+                std::cerr << "Unknown action type: " << static_cast<int>(context->action_type) << std::endl;
                 help();
                 break;
         }
@@ -62,46 +66,58 @@ void Metaprocessor::version() {
 
 void Metaprocessor::list_rules() {
         std::string rules_list;
-        rules_list += "strict_variables: " + std::string(context.rules.strict_variables ? "true" : "false") + "\n";
-        rules_list += "set_default_variables: " + std::string(context.rules.set_default_variables ? "true" : "false") + "\n";
-        rules_list += "trim_start: " + std::string(context.rules.trim_start ? "true" : "false") + "\n";
-        rules_list += "trim_end: " + std::string(context.rules.trim_end ? "true" : "false") + "\n";
-        rules_list += "allow_env: " + std::string(context.rules.allow_env ? "true" : "false") + "\n";
+        rules_list += "strict_variables: " + std::string(context->rules.strict_variables.value() ? "true" : "false") + "\n";
+        rules_list += "set_default_variables: " + std::string(context->rules.set_default_variables.value() ? "true" : "false") + "\n";
+        rules_list += "trim_start: " + std::string(context->rules.trim_start.value() ? "true" : "false") + "\n";
+        rules_list += "trim_end: " + std::string(context->rules.trim_end.value() ? "true" : "false") + "\n";
+        rules_list += "allow_env: " + std::string(context->rules.allow_env.value() ? "true" : "false") + "\n";
+        rules_list += "allow_env_fallback: " + std::string(context->rules.allow_env_fallback.value() ? "true" : "false") + "\n";
         rules_list += "debug_level: ";
         rules_list +=
-            (context.rules.debug_level == DebugLevel::ERROR   ? "[ERROR] "
-             : context.rules.debug_level == DebugLevel::WARNING ? "[WARNING] "
-             : context.rules.debug_level == DebugLevel::INFO    ? "[INFO] "
+            (context->rules.debug_level.value() == DebugLevel::ERROR   ? "[ERROR] "
+             : context->rules.debug_level.value() == DebugLevel::WARNING ? "[WARNING] "
+             : context->rules.debug_level.value() == DebugLevel::INFO    ? "[INFO] "
              : "[DEBUG] ");
         rules_list += "\n";
 
-        if (context.rules.max_variable_length != -1) {
-            rules_list += "max_variable_length: " + std::to_string(context.rules.max_variable_length) + "\n";
+        if (context->rules.max_variable_length.value() != -1) {
+            rules_list += "max_variable_length: " + std::to_string(context->rules.max_variable_length.value()) + "\n";
         } else {
                 rules_list += "max_variable_length: No Limit\n";
                 }
-        rules_list += "default_variable_value: " + context.rules.default_variable_value + "\n";
-        rules_list += "variable_prefix: " + context.rules.variable_prefix + "\n";
-        rules_list += "variable_suffix: " + context.rules.variable_suffix + "\n";
-        rules_list += "include_path: " + context.rules.include_path + "\n";
+        rules_list += "default_variable_value: " + context->rules.default_variable_value.value() + "\n";
+        rules_list += "variable_prefix: " + context->rules.variable_prefix.value() + "\n";
+        rules_list += "variable_suffix: " + context->rules.variable_suffix.value() + "\n";
+        rules_list += "include_path: " + context->rules.include_path.value() + "\n";
         rules_list += "benchmark: ";
-        rules_list += (context.rules.benchmark == Benchmark::NONE ? "None"
-                            : context.rules.benchmark == Benchmark::TIME ? "Time"
-                            : context.rules.benchmark == Benchmark::MEMORY ? "Memory"
+        rules_list += (context->rules.benchmark.value() == Benchmark::NONE ? "None"
+                            : context->rules.benchmark.value() == Benchmark::TIME ? "Time"
+                            : context->rules.benchmark.value() == Benchmark::MEMORY ? "Memory"
                             : "All");
 
         std::cout << "Used Rules:\n\n" << rules_list << std::endl;
 }
 
 void Metaprocessor::list_variables() {
-        if (context.variables.empty()) {
+        if (context->variables.empty()) {
                 std::cout << "No variables defined." << std::endl;
                 return;
         }
 
-        std::cout << "Defined variables:" << std::endl;
-        for (const auto& var : context.variables) {
-                std::cout << var.first << " = " << var.second << std::endl;
+        std::cout << "Defined variables: \n" << std::endl;
+        for (const auto& var : context->variables) {
+                if (var.second.size() == 1) {
+                        std::cout << var.first << " = " << var.second[0] << std::endl;
+                } else {
+                        std::cout << var.first << " = [";
+                        for (size_t i = 0; i < var.second.size(); ++i) {
+                                std::cout << var.second[i];
+                                if (i < var.second.size() - 1) {
+                                        std::cout << ", ";
+                                }
+                        }
+                        std::cout << "]" << std::endl;
+                }
         }
 }
 

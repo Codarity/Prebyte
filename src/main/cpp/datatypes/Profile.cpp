@@ -5,10 +5,10 @@ namespace prebyte {
 Profile::Profile(const std::string& name) : name(name) {}
 
 void Profile::add_variable(const std::string& variable_name, const std::string& variable_value) {
-    variables[variable_name] = variable_value;
+    variables[variable_name] = {variable_value};
 }
 
-void Profile::add_variable(const std::map<std::string, std::string>& variables) {
+void Profile::add_variable(const std::map<std::string, std::vector<std::string>>& variables) {
     this->variables.insert(variables.begin(), variables.end());
 }
 
@@ -32,8 +32,8 @@ std::string& Profile::get_name() const {
     return const_cast<std::string&>(name);
 }
 
-std::map<std::string,std::string>& Profile::get_variables() const {
-    return const_cast<std::map<std::string,std::string>&>(variables);
+std::map<std::string,std::vector<std::string>>& Profile::get_variables() const {
+    return const_cast<std::map<std::string,std::vector<std::string>>&>(variables);
 }
 
 std::unordered_set<std::string>& Profile::get_ignore() const {

@@ -61,7 +61,7 @@ ActionType CliParser::findAction(std::list<std::string>* args) {
 
         if(args->front().starts_with("-D") || args->front() == "-r" || args->front() == "--rule" ||
            args->front() == "-i" || args->front() == "--ignore" || args->front() == "-p" || args->front() == "--profile" ||
-           args->front().starts_with("-P")) {
+           args->front().starts_with("-P") || args->front() == "-s" || args->front() == "--settings") {
                 return ActionType::STDIN_STDOUT;
         }
 
@@ -76,6 +76,12 @@ void CliParser::process(const std::vector<std::string>& args) {
                         this->cli_struct.rules.push_back(args[++i]);
                         } else {
                                 throw std::runtime_error("Missing rule after " + arg);
+                        }
+                } else if(arg == "-s" || arg == "--settings") {
+                        if(i + 1 < args.size()) {
+                                this->cli_struct.settings_file = args[++i];
+                        } else {
+                                throw std::runtime_error("Missing settings file after " + arg);
                         }
                 } else if(arg == "-i" || arg == "--ignore") {
                         if(i + 1 < args.size()) {
@@ -101,6 +107,20 @@ void CliParser::process(const std::vector<std::string>& args) {
                 } else if(arg.starts_with("-D")) {
                         if(arg == "-D") throw std::runtime_error("Missing variable definition after -D");
                         this->cli_struct.variables.push_back(arg.substr(2));
+                } else if (arg == "--trace") {
+                    spdlog::set_level(spdlog::level::trace);
+                } else if (arg == "--debug") {
+                    spdlog::set_level(spdlog::level::debug);
+                } else if (arg == "--info") {
+                    spdlog::set_level(spdlog::level::info);
+                } else if (arg == "--warn") {
+                    spdlog::set_level(spdlog::level::warn);
+                } else if (arg == "--error") {
+                    spdlog::set_level(spdlog::level::err);
+                } else if (arg == "--critical") {
+                    spdlog::set_level(spdlog::level::critical);
+                } else if (arg == "--off") {
+                    spdlog::set_level(spdlog::level::off);
                 } else {
                         this->cli_struct.warning_message = "Unknown argument: " + arg;
                 }

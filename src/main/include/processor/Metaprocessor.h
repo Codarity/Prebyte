@@ -16,8 +16,9 @@ private:
         void list_rules();
         void list_variables();
 public:
-    using Processor::Processor;
-    void process() override;
+        Metaprocessor(Context* context);
+
+        void process() override;
 };
 
 }

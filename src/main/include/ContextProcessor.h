@@ -30,11 +30,10 @@ private:
         std::optional<std::filesystem::path> find_settings_file(
         const std::filesystem::path& path) const;
 
-        std::map<std::string, std::string> get_variables(const Data& variables);
+        std::map<std::string,std::vector<std::string>> get_variables(const Data& variables);
         std::map<std::string, Profile> get_profiles(const Data& profiles);
         std::unordered_set<std::string> get_ignore(const Data& ignore);
         std::map<std::string, std::string> get_rules(const Data& rules);
-        void add_rule(Rules& rules, std::string rule_name, const Data& rule_data);
 
         std::string get_string(Data data) const;
         int get_int(Data data) const;

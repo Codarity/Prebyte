@@ -16,6 +16,7 @@ public:
 
     Data parse(const std::filesystem::path& filepath) override;
     bool can_parse(const std::filesystem::path& filepath) const override;
+    Data parse_string(const std::string& csv_string) override;
 };
 
 }
