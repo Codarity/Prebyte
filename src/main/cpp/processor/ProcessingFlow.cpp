@@ -156,8 +156,8 @@ std::string ProcessingFlow::get_value(const std::string& action) {
                 } else if (sub_action.starts_with("profile ")) {
                         return _DEFINE_PROFILE(sub_action.substr(8));
                 }
-        } else if (action.starts_with("execute macro ")) {
-                return _EXECUTE_MACRO(action.substr(14));
+        } else if (action.starts_with("exec ")) {
+                return _EXECUTE_MACRO(action.substr(5));
         } else if (action.starts_with("if ")) {
                 return _IF(action.substr(3));
         } else if (action.starts_with("elif ")) {

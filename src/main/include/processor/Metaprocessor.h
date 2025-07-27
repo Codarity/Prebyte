@@ -5,6 +5,9 @@
 
 #include "processor/Processor.h"
 
+
+extern const std::string VERSION;
+
 namespace prebyte {
 
 class Metaprocessor : public Processor {
