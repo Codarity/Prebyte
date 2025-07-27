@@ -6,10 +6,11 @@ ContextProcessor::ContextProcessor(const CliStruct& cli_struct)
     : cli_struct(cli_struct) {
 }
 
-Context ContextProcessor::process() {
-        this->context.rules.init();
+Context* ContextProcessor::process() {
+        this->context = new Context();
+        this->context->rules.init();
         this->set_logger();
-        this->context.start_time = cli_struct.start_time;
+        this->context->start_time = cli_struct.start_time;
         load_action_type();
         load_settings();
         load_profiles();
@@ -20,8 +21,8 @@ Context ContextProcessor::process() {
 }
 
 void ContextProcessor::load_action_type() {
-        context.action_type = cli_struct.action;
-        context.inputs = cli_struct.input_args;
+        context->action_type = cli_struct.action;
+        context->inputs = cli_struct.input_args;
 }
 
 std::optional<std::filesystem::path> ContextProcessor::find_settings_file(const std::filesystem::path& dir) const {
@@ -67,13 +68,13 @@ void ContextProcessor::load_settings() {
                 Data ignore    = settings_data["ignore"];
                 Data rules     = settings_data["rules"];
                 if (!variables.is_null()) {
-                        context.variables = get_variables(variables);
+                        context->variables = get_variables(variables);
                 }
                 if (!profiles.is_null()) {
-                        context.profiles = get_profiles(profiles);
+                        context->profiles = get_profiles(profiles);
                 }
                 if (!ignore.is_null()) {
-                        context.ignore = get_ignore(ignore);
+                        context->ignore = get_ignore(ignore);
                 }
                 if (!rules.is_null()) {
                         load_rules(get_rules(rules));
@@ -86,15 +87,15 @@ void ContextProcessor::load_profiles() {
                 return;
         }
         for(const std::string profile_name : cli_struct.profiles) {
-                Profile profile = context.profiles[profile_name];
+                Profile profile = context->profiles[profile_name];
                 for (const auto& [key,value] : profile.get_variables()) {
-                        context.variables[key] = {value};
+                        context->variables[key] = {value};
                 }
                 for (const auto& ignore_item : profile.get_ignore()) {
-                        context.ignore.insert(ignore_item);
+                        context->ignore.insert(ignore_item);
                 }
                 for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                        context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_value)));
+                        context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
                 }
         }
 }
@@ -126,10 +127,10 @@ void ContextProcessor::load_variables() {
                                         values.push_back(item);
                                 }
                         }
-                        context.variables[var_name] = values;
+                        context->variables[var_name] = values;
                         continue;
                 }
-                context.variables[var_name] = {var_value};
+                context->variables[var_name] = {var_value};
         }
 }
 
@@ -147,7 +148,7 @@ void ContextProcessor::inject_variables(const std::string& filePath) {
                 if (variable_name.empty()) {
                         throw std::runtime_error("Variable name cannot be empty.");
                 }
-                context.variables[variable_name] = {value.as_string()};
+                context->variables[variable_name] = {value.as_string()};
         }
 }
 
@@ -159,7 +160,7 @@ void ContextProcessor::load_ignore() {
                 if (ignore_item.empty()) {
                         throw std::runtime_error("Ignore item cannot be empty.");
                 }
-                context.ignore.insert(ignore_item);
+                context->ignore.insert(ignore_item);
         }
 }
 
@@ -177,13 +178,13 @@ void ContextProcessor::load_rules() {
                 if (rule_name.empty() || rule_value.empty()) {
                         throw std::runtime_error("Rule name or value cannot be empty.");
                 }
-                context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_value)));
+                context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
         }
 }
 
 void ContextProcessor::load_rules(const std::map<std::string, std::string>& rules) {
         for (const auto& [rule_name, rule_data] : rules) {
-                context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_data)));
+                context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_data)));
         }
 }
 
@@ -291,7 +292,7 @@ std::map<std::string,std::string> ContextProcessor::get_rules(const Data& rules)
 
 
 void ContextProcessor::set_logger() {
-        if (this->context.logger) {
+        if (this->context->logger) {
                 return;
         }
         pid_t pid = getpid();
@@ -304,9 +305,9 @@ void ContextProcessor::set_logger() {
         console_sink->set_level(spdlog::level::err);
         console_sink->set_pattern("%^[%l] %v%$");
 
-        context.console_sink = console_sink;
+        context->console_sink = console_sink;
 
-        context.logger = std::make_shared<spdlog::logger>("prebyte", spdlog::sinks_init_list{file_sink, console_sink});
+        context->logger = std::make_shared<spdlog::logger>("prebyte", spdlog::sinks_init_list{file_sink, console_sink});
 }
 
 std::string ContextProcessor::expand_tilde(const std::string& path) {

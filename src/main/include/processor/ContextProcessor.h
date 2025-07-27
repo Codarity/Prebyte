@@ -15,7 +15,7 @@ namespace prebyte {
 class ContextProcessor {
 private:
         CliStruct cli_struct;
-        Context context;
+        Context* context;
         ActionType action_type;
 
         void determine_action_type();
@@ -48,7 +48,7 @@ private:
 
 public:
         ContextProcessor(const CliStruct& cli_struct);
-        Context process();
+        Context* process();
 };
 
 }  // namespace prebyte

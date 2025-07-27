@@ -10,10 +10,10 @@ namespace prebyte {
 
 class Executer {
 private:
-        Context context;
+        Context* context;
 
 public:
-        Executer(Context context);
+        Executer(Context* context);
         void execute();
 };
 

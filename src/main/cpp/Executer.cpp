@@ -2,19 +2,19 @@
 
 namespace prebyte {
 
-Executer::Executer(Context context)
+Executer::Executer(Context* context)
     : context(std::move(context)) {
 }
 
 void Executer::execute() {
-        switch (context.action_type) {
+        switch (context->action_type) {
                 case ActionType::HELP:
                 case ActionType::HARD_HELP:
                 case ActionType::EXPLAIN:
                 case ActionType::VERSION:
                 case ActionType::LIST_RULES:
                 case ActionType::LIST_VARIABLES: {
-                        Metaprocessor processor(&context);
+                        Metaprocessor processor(context);
                         processor.process();
                         break;
                 }
@@ -22,7 +22,7 @@ void Executer::execute() {
                 case ActionType::FILE_IN_STDOUT:
                 case ActionType::STDIN_FILE_OUT:
                 case ActionType::STDIN_STDOUT: {
-                        Preprocessor preprocessor(&context);
+                        Preprocessor preprocessor(context);
                         preprocessor.process();
                         break;
                 }

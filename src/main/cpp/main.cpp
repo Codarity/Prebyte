@@ -20,9 +20,10 @@ int main(int argc, char** argv) {
                 prebyte::CliParser cli_parser;
                 prebyte::CliStruct cli_struct = cli_parser.parse(args);
                 prebyte::ContextProcessor context_processor(cli_struct);
-                prebyte::Context context = context_processor.process();
+                prebyte::Context* context = context_processor.process();
                 prebyte::Executer executer(context);
                 executer.execute();
+                delete context;
         } catch (const std::exception& e) {
                 std::cerr << "Error: " << e.what() << std::endl;
                 return 1;
