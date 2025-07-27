@@ -45,14 +45,16 @@ std::string Processor::get_variable(const std::string& variable_name) const {
                         if (std::filesystem::exists(variable)) {
                                 std::ifstream file(variable);
                                 if (!file) {
-                                        throw std::runtime_error("Error opening file: " + variable);
+                                        this->context->logger->error("Error opening file {} for variable {}", variable, variable_name);
+                                        exit(1);
                                 }
                                 variable.assign(
                                     std::istreambuf_iterator<char>(file),
                                     std::istreambuf_iterator<char>()
                                 );
                         } else {
-                                throw std::runtime_error("File does not exist: " + variable);
+                                this->context->logger->error("File ({}) does not exist for variable: {}", variable, variable_name);
+                                exit(1);
                         }
                 }
         }

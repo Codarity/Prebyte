@@ -2,7 +2,7 @@
 
 namespace prebyte {
 
-ProcessingVariables::ProcessingVariables(Context* context) : context(*context), current_time(std::chrono::system_clock::now()) {
+ProcessingVariables::ProcessingVariables(Context* context) : context(context), current_time(std::chrono::system_clock::now()) {
         functionality = {
         { "__DATE__",          [this]() { return this->_DATE(); } },
         { "__TIME__",          [this]() { return this->_TIME(); } },
@@ -133,18 +133,18 @@ std::string ProcessingVariables::_PWD() const {
 
 
 std::string ProcessingVariables::_FILE() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-            return context.inputs[0];
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+            return context->inputs[0];
         }
         return "";
 }
 
 
 std::string ProcessingVariables::_FILE_NAME() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-            std::filesystem::path input_path = context.inputs[0];
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+            std::filesystem::path input_path = context->inputs[0];
             return input_path.filename().string();
         }
         return "";
@@ -152,9 +152,9 @@ std::string ProcessingVariables::_FILE_NAME() const {
 
 
 std::string ProcessingVariables::_FILE_PATH() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-                std::filesystem::path input_path = std::filesystem::absolute(context.inputs[0]);
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+                std::filesystem::path input_path = std::filesystem::absolute(context->inputs[0]);
                 return input_path.parent_path().string();
         }
         return "";
@@ -162,9 +162,9 @@ std::string ProcessingVariables::_FILE_PATH() const {
 
 
 std::string ProcessingVariables::_FILE_EXT() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-            std::filesystem::path input_path = context.inputs[0];
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+            std::filesystem::path input_path = context->inputs[0];
             return input_path.extension().string();
         }
         return "";
@@ -172,9 +172,9 @@ std::string ProcessingVariables::_FILE_EXT() const {
 
 
 std::string ProcessingVariables::_FILE_SIZE() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-            std::filesystem::path input_path = context.inputs[0];
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+            std::filesystem::path input_path = context->inputs[0];
             if (std::filesystem::exists(input_path)) {
                 return std::to_string(std::filesystem::file_size(input_path));
             }
@@ -184,9 +184,9 @@ std::string ProcessingVariables::_FILE_SIZE() const {
 
 
 std::string ProcessingVariables::_FILE_CREATED() const {
-        if (context.action_type == ActionType::FILE_IN_FILE_OUT ||
-            context.action_type == ActionType::FILE_IN_STDOUT) {
-            std::filesystem::path input_path = context.inputs[0];
+        if (context->action_type == ActionType::FILE_IN_FILE_OUT ||
+            context->action_type == ActionType::FILE_IN_STDOUT) {
+            std::filesystem::path input_path = context->inputs[0];
             if (std::filesystem::exists(input_path)) {
                 auto ftime = std::filesystem::last_write_time(input_path);
                 auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());

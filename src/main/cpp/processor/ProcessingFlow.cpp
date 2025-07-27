@@ -128,58 +128,76 @@ bool ProcessingFlow::is_valid(const std::string& action) const {
 std::string ProcessingFlow::get_value(const std::string& action) {
         std::string sub_action;
         this->flow_state = FlowState::NONE;
+        this->context->logger->trace("Processing action: {}", action);
         if (action.starts_with("set ")) {
+                this->context->logger->trace("Action is a 'set' command");
                 sub_action = action.substr(4);
                 if (sub_action.starts_with("var ")) {
+                        this->context->logger->trace("Action is setting a variable");
                         return _SET_VAR(sub_action.substr(4));
                 } else if (sub_action.starts_with("rule ")) {
+                        this->context->logger->trace("Action is setting a rule");
                         return _SET_RULE(sub_action.substr(5));
                 } else if (sub_action.starts_with("profile ")) {
+                        this->context->logger->trace("Action is setting a profile");
                         return _SET_PROFILE(sub_action.substr(8));
                 } else if (sub_action.starts_with("ignore ")) {
+                        this->context->logger->trace("Action is setting an ignore item");
                         return _SET_IGNORE(sub_action.substr(7));
                 } else if (sub_action.starts_with("igno ")) {
+                        this->context->logger->trace("Action is setting an ignore item");
                         return _SET_IGNORE(sub_action.substr(5));
                 }
         } else if (action.starts_with("unset ")) {
+                this->context->logger->trace("Action is an 'unset' command");
                 sub_action = action.substr(6);
                 if (sub_action.starts_with("var ")) {
+                        this->context->logger->trace("Action is unsetting a variable");
                         return _UNSET_VAR(sub_action.substr(4));
                 } else if (sub_action.starts_with("ignore ")) {
+                        this->context->logger->trace("Action is unsetting an ignore item");
                         return _UNSET_IGNORE(sub_action.substr(7));
                 }
         } else if (action.starts_with("define ") || action.starts_with("def ")) {
+                this->context->logger->trace("Action is a 'define' command");
                 if (action.starts_with("define ")) sub_action = action.substr(7);
                 else if (action.starts_with("def ")) sub_action = action.substr(4);
                 if (sub_action.starts_with("macro ")) {
+                        this->context->logger->trace("Action is defining a macro");
                         return _DEFINE_MACRO(sub_action.substr(6));
                 } else if (sub_action.starts_with("profile ")) {
+                        this->context->logger->trace("Action is defining a profile");
                         return _DEFINE_PROFILE(sub_action.substr(8));
                 }
         } else if (action.starts_with("exec ")) {
+                this->context->logger->trace("Action is executing a macro");
                 return _EXECUTE_MACRO(action.substr(5));
         } else if (action.starts_with("if ")) {
+                this->context->logger->trace("Action is an 'if' condition");
                 return _IF(action.substr(3));
         } else if (action.starts_with("elif ")) {
+                this->context->logger->trace("Action is an 'elif' condition");
                 return _ELSE_IF(action.substr(8));
         } else if (action == "else") {
+                this->context->logger->trace("Action is an 'else' condition");
                 return _ELSE("");
         } else if (action.starts_with("for ")) {
+                this->context->logger->trace("Action is a 'for' loop");
                 return _FOR(action.substr(4));
         } else if (action == "endfor") {
+                this->context->logger->trace("Action is an for loop end");
                 this->flow_state = FlowState::END_FOR;
                 return "";
         } else if (action == "endif") {
+                this->context->logger->trace("Action is an condition end");
                 this->flow_state = FlowState::END_IF;
                 return "";
         } else if (action == "enddef") {
+                this->context->logger->trace("Action is an macro definition end");
                 this->flow_state = FlowState::END_DEFINE;
                 return "";
-        } else if (action == "endmacro") {
-                return _EXECUTE_MACRO("");
-        } else if (action == "endprofile") {
-                return _DEFINE_PROFILE("");
         } else if (action.starts_with("include ")) {
+                this->context->logger->trace("Action is an include command");
                 this->flow_state = FlowState::INCLUDE;
                 return _INCLUDE(action.substr(8));
         }

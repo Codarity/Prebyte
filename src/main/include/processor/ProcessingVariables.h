@@ -49,7 +49,7 @@ private:
 
         std::unordered_map<std::string,std::function<std::string()>> functionality;
         std::chrono::time_point<std::chrono::system_clock> current_time;
-        Context context;
+        Context* context;
 
 
         std::tm getLocalTime() const;

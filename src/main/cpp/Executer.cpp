@@ -7,6 +7,7 @@ Executer::Executer(std::unique_ptr<Context> context)
 }
 
 void Executer::execute() {
+        this->context->logger->debug("Executing action type: {}", static_cast<int>(context->action_type));
         switch (context->action_type) {
                 case ActionType::HELP:
                 case ActionType::HARD_HELP:
@@ -27,8 +28,9 @@ void Executer::execute() {
                         break;
                 }
                 default:
-                        throw std::runtime_error("Unknown action type");
-                        break;
+                        this->context->logger->error("Unknown action type: {}", static_cast<int>(context->action_type));
+                        this->context->logger->error("Please use --help to see available commands.");
+                        exit(1);
         }
 }
 
