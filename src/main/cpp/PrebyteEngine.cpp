@@ -101,11 +101,11 @@ std::map<std::string,std::vector<std::string>> get_variables(const Data& variabl
                 std::string variable_name = key;
                 if (variable_name.empty()) {
                         context->logger->error("Variable name cannot be empty.");
-                        exit(1);
+                        end(context.get());
                 }
                 if (value.is_null()) {
                         context->logger->error("Variable value cannot be null for variable: {}", variable_name);
-                        exit(1);
+                        end(context.get());
                 }
                 if (value.is_string()) {
                         context->logger->trace("Variable: '{}' is a string with value: '{}'", variable_name, value.as_string());
@@ -125,7 +125,7 @@ std::map<std::string,std::vector<std::string>> get_variables(const Data& variabl
                         for (const auto& item : value.as_array()) {
                                 if (item.is_null() || item.is_array() || item.is_map()) {
                                         context->logger->error("Variable value cannot be null or an array/map for variable: {}", variable_name);
-                                        exit(1);
+                                        end(context.get());
                                 }
                                 if (item.is_string()) {
                                         context->logger->trace("Array item for variable: '{}' is a string with value: '{}'", variable_name, item.as_string());
@@ -145,7 +145,7 @@ std::map<std::string,std::vector<std::string>> get_variables(const Data& variabl
                         variable_list[variable_name] = values;
                 } else {
                         context->logger->error("Unsupported variable type for variable: {}", variable_name);
-                        exit(1);
+                        end(context.get());
                 }
         }
         return variable_list;
@@ -158,11 +158,11 @@ std::map<std::string,Profile> get_profiles(const Data& profiles) {
                 std::string profile_name = key;
                 if (profile_name.empty()) {
                         context->logger->error("Profile name cannot be empty.");
-                        exit(1);
+                        end(context.get());
                 }
                 if (!profile_value.is_map()) {
                         context->logger->error("Profile value must be a map for profile: {}", profile_name);
-                        exit(1);
+                        end(context.get());
                 }
                 Profile profile(profile_name);
                 context->logger->trace("Creating profile {}", profile_name);
@@ -178,7 +178,7 @@ std::map<std::string,Profile> get_profiles(const Data& profiles) {
                                 profile.add_rules(get_rules(var_value));
                         } else {
                                 context->logger->error("Unknown key '{}' in profile: {}", var_key, profile_name);
-                                exit(1);
+                                end(context.get());
                         }
                 }
                 profile_list[profile_name] = profile;
@@ -191,12 +191,12 @@ std::unordered_set<std::string> get_ignore(const Data& ignore) {
         context->logger->debug("Processing ignore items from Data object");
         if (!ignore.is_array()) {
                 context->logger->error("Ignore must be an array.");
-                exit(1);
+                end(context.get());
         }
         for (const auto& item : ignore.as_array()) {
                 if (!item.is_string()) {
                         context->logger->error("Ignore items must be strings.");
-                        exit(1);
+                        end(context.get());
                 }
                 context->logger->trace("Adding ignore item: '{}'", item.as_string());
                 ignore_list.insert(item.as_string());
@@ -209,18 +209,18 @@ std::map<std::string,std::string> get_rules(const Data& rules) {
         context->logger->debug("Processing rules from Data object");
         if (!rules.is_map()) {
                 context->logger->error("Rules must be a map.");
-                exit(1);
+                end(context.get());
         }
         for (const auto& [key, value] : rules.as_map()) {
                 std::string rule_name = key;
                 context->logger->trace("Processing rule: '{}'", rule_name);
                 if (rule_name.empty()) {
                         context->logger->error("Rule name cannot be empty.");
-                        exit(1);
+                        end(context.get());
                 }
                 if (!value.is_string() && !value.is_bool() && !value.is_int() && !value.is_double()) {
                         context->logger->error("Rule value must be a string, boolean, integer, or double for rule: {}", rule_name);
-                        exit(1);
+                        end(context.get());
                 }
                 context->logger->trace("Rule: '{}' with value: '{}'", rule_name, value.as_string());
                 rule_set[rule_name] = value.as_string();

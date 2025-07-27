@@ -149,10 +149,10 @@ void ContextProcessor::load_variables() {
                 this->context->logger->trace("Found variable: {} with value: {}", var_name, var_value);
                 if (var_name.empty()) {
                         this->context->logger->error("Variable name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 } else if (var_value.empty()) {
                         this->context->logger->error("Variable value cannot be empty for variable: {}", var_name);
-                        exit(1);
+                        end(this->context.get());
                 }
 
                 if (var_value[0] == '[' && var_value.back() == ']') {
@@ -180,25 +180,25 @@ void ContextProcessor::inject_variables(const std::string& filePath) {
         this->context->logger->debug("Injecting variables from file: {}", filePath);
         if (!std::filesystem::exists(filePath)) {
                 this->context->logger->error("File does not exist: {}", filePath);
-                exit(1);
+                end(this->context.get());
         }
         FileParser file_parser;
         Data file_data = file_parser.parse(filePath);
         if (!file_data.is_map()) {
                 this->context->logger->error("File content is not a map: {}. Make sure it is a valid JSON, YAML or TOML file.", filePath);
-                exit(1);
+                end(this->context.get());
         }
         for (const auto& [key, value] : file_data.as_map()) {
                 std::string variable_name = key;
                 if (variable_name.empty()) {
                         this->context->logger->error("Variable name cannot be empty in file: {}", filePath);
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (value.is_null()) {
                         this->context->logger->error("Variable value cannot be null for variable: {} in file: {}", variable_name, filePath);
-                        exit(1);
+                        end(this->context.get());
                 }
-                this->context->logger->trace("Injecting variable: '{}' with value: '{}'", variable_name, value.to_string());
+                this->context->logger->debug("Injecting variable {}", variable_name);
                 context->variables[variable_name] = {value.as_string()};
         }
 }
@@ -212,7 +212,7 @@ void ContextProcessor::load_ignore() {
         for (const auto& ignore_item : cli_struct.ignore) {
                 if (ignore_item.empty()) {
                         this->context->logger->error("Ignore item cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->debug("Adding ignore item: {}", ignore_item);
                 context->ignore.insert(ignore_item);
@@ -229,13 +229,13 @@ void ContextProcessor::load_rules() {
                 size_t pos = rule.find('=');
                 if (pos == std::string::npos) {
                         this->context->logger->error("Rule '{}' does not contain '='. Rules must be in the format 'name=value'.", rule);
-                        exit(1);
+                        end(this->context.get());
                 }
                 std::string rule_name = rule.substr(0, pos);
                 std::string rule_value = rule.substr(pos + 1);
                 if (rule_name.empty() || rule_value.empty()) {
                         this->context->logger->error("Rule name or value cannot be empty. Rule: '{}'", rule);
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Found rule: '{}' with value: '{}'", rule_name, rule_value);
                 context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
@@ -257,11 +257,11 @@ std::map<std::string,std::vector<std::string>> ContextProcessor::get_variables(c
                 std::string variable_name = key;
                 if (variable_name.empty()) {
                         this->context->logger->error("Variable name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (value.is_null()) {
                         this->context->logger->error("Variable value cannot be null for variable: {}", variable_name);
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (value.is_string()) {
                         this->context->logger->trace("Variable: '{}' is a string with value: '{}'", variable_name, value.as_string());
@@ -281,7 +281,7 @@ std::map<std::string,std::vector<std::string>> ContextProcessor::get_variables(c
                         for (const auto& item : value.as_array()) {
                                 if (item.is_null() || item.is_array() || item.is_map()) {
                                         this->context->logger->error("Variable value cannot be null or an array/map for variable: {}", variable_name);
-                                        exit(1);
+                                        end(this->context.get());
                                 }
                                 if (item.is_string()) {
                                         this->context->logger->trace("Array item for variable: '{}' is a string with value: '{}'", variable_name, item.as_string());
@@ -302,7 +302,7 @@ std::map<std::string,std::vector<std::string>> ContextProcessor::get_variables(c
                         variable_list[variable_name] = values;
                 } else {
                         this->context->logger->error("Unsupported variable type for variable: {}", variable_name);
-                        exit(1);
+                        end(this->context.get());
                 }
         }
         return variable_list;
@@ -315,11 +315,11 @@ std::map<std::string,Profile> ContextProcessor::get_profiles(const Data& profile
                 std::string profile_name = key;
                 if (profile_name.empty()) {
                         this->context->logger->error("Profile name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (!profile_value.is_map()) {
                         this->context->logger->error("Profile value must be a map for profile: {}", profile_name);
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Creating profile: {}", profile_name);
                 Profile profile(profile_name);
@@ -335,7 +335,7 @@ std::map<std::string,Profile> ContextProcessor::get_profiles(const Data& profile
                                 profile.add_rules(get_rules(var_value));
                         } else {
                                 this->context->logger->error("Unknown key '{}' in profile: {}", var_key, profile_name);
-                                exit(1);
+                                end(this->context.get());
                         }
                 }
                 this->context->logger->trace("Profile '{}' created with {} variables, {} ignore items, and {} rules",
@@ -351,12 +351,12 @@ std::unordered_set<std::string> ContextProcessor::get_ignore(const Data& ignore)
         this->context->logger->debug("Processing ignore items from Data object");
         if (!ignore.is_array()) {
                 this->context->logger->error("Ignore must be an array.");
-                exit(1);
+                end(this->context.get());
         }
         for (const auto& item : ignore.as_array()) {
                 if (!item.is_string()) {
                         this->context->logger->error("Ignore items must be strings.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Adding ignore item: '{}'", item.as_string());
                 ignore_list.insert(item.as_string());
@@ -369,17 +369,17 @@ std::map<std::string,std::string> ContextProcessor::get_rules(const Data& rules)
         this->context->logger->debug("Processing rules from Data object");
         if (!rules.is_map()) {
                 this->context->logger->error("Rules must be a map.");
-                exit(1);
+                end(this->context.get());
         }
         for (const auto& [key, value] : rules.as_map()) {
                 std::string rule_name = key;
                 if (rule_name.empty()) {
                         this->context->logger->error("Rule name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (!value.is_string() && !value.is_bool() && !value.is_int() && !value.is_double()) {
                         this->context->logger->error("Rule value must be a string, boolean, integer, or double for rule: {}", rule_name);
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Adding rule: '{}' with value: '{}'", rule_name, value.as_string());
                 rule_set[rule_name] = value.as_string();

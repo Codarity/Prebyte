@@ -46,7 +46,7 @@ std::string Processor::get_variable(const std::string& variable_name) const {
                                 std::ifstream file(variable);
                                 if (!file) {
                                         this->context->logger->error("Error opening file {} for variable {}", variable, variable_name);
-                                        exit(1);
+                                        end(context.get());
                                 }
                                 variable.assign(
                                     std::istreambuf_iterator<char>(file),
@@ -54,7 +54,7 @@ std::string Processor::get_variable(const std::string& variable_name) const {
                                 );
                         } else {
                                 this->context->logger->error("File ({}) does not exist for variable: {}", variable, variable_name);
-                                exit(1);
+                                end(context.get());
                         }
                 }
         }

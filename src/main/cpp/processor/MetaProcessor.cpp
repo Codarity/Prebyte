@@ -344,7 +344,7 @@ std::cout << "   Usage: prebyte <command> [options]\n\n"
 void Metaprocessor::hard_help() {
         this->context->logger->debug("Showing hard help message, because no matching command or options were provided");
         this->context->logger->error("Invalid command or options provided.\n");
-        std::exit(1);
+        end(this->context.get());
 }
 
 void Metaprocessor::version() {

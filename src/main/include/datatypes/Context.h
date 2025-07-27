@@ -15,8 +15,10 @@
 
 namespace prebyte {
 
+
 struct Context {
         ActionType action_type;
+        bool is_api = false;
         std::shared_ptr<spdlog::logger> logger;
         std::shared_ptr<spdlog::sinks::sink> console_sink;
         Rules rules;
@@ -30,5 +32,8 @@ struct Context {
         std::map<std::string,std::string> macros;
         int include_counter = 0;
 };
+
+
+void end(Context* context);
 
 }

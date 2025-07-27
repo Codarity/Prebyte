@@ -30,7 +30,7 @@ void Executer::execute() {
                 default:
                         this->context->logger->error("Unknown action type: {}", static_cast<int>(context->action_type));
                         this->context->logger->error("Please use --help to see available commands.");
-                        exit(1);
+                        end(context.get());
         }
 }
 

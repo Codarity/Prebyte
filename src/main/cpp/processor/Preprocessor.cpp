@@ -33,7 +33,7 @@ std::string Preprocessor::get_input() const {
             std::ifstream input_file(input_path);
             if (!input_file) {
                 this->context->logger->error("Error opening input file: " + input_path.string());
-                exit(1);
+                end(this->context.get());
             }
 
             this->context->logger->debug("Reading input from file: " + input_path.string());
@@ -76,7 +76,7 @@ std::string Preprocessor::get_input() const {
         }
         default:
             this->context->logger->error("Unknown action type for input: " + std::to_string(static_cast<int>(context->action_type)));
-            exit(1);
+            end(this->context.get());
     }
 
     return input_data;
@@ -94,7 +94,7 @@ void Preprocessor::make_output() const {
                         std::ofstream output_file(output_path);
                         if (!output_file) {
                                 this->context->logger->error("Error opening output file: " + output_path.string());
-                                exit(1);
+                                end(this->context.get());
                         }
                         this->context->logger->debug("Writing output to file: " + output_path.string());
                         output_file << output;
@@ -106,7 +106,7 @@ void Preprocessor::make_output() const {
                         std::ofstream output_file(output_path);
                         if (!output_file) {
                                 this->context->logger->error("Error opening output file: " + output_path.string());
-                                exit(1);
+                                end(this->context.get());
                         }
                         this->context->logger->debug("Writing output to file: " + output_path.string());
                         output_file << output;
@@ -122,7 +122,7 @@ void Preprocessor::make_output() const {
                         this->context->output = output;
                 default:
                         this->context->logger->error("Unknown action type for output: " + std::to_string(static_cast<int>(context->action_type)));
-                        exit(1);
+                        end(this->context.get());
         }
 }
 
@@ -157,7 +157,7 @@ std::string Preprocessor::process_all(std::string input) {
                         position = input.find_first_of(this->context->rules.variable_suffix.value());
                         if (position == std::string::npos) {
                                 this->context->logger->error("Variable suffix not found in input.");
-                                exit(1);
+                                end(this->context.get());
                         }
                         action_content = input.substr(0, position);
                         input.erase(0, position + this->context->rules.variable_suffix.value().length());
@@ -203,18 +203,18 @@ std::string Preprocessor::do_action(const std::string& action) {
                 }
                 if (this->macro_args.empty()) { 
                         this->context->logger->error("ARGS variable used without macro arguments.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (!action.ends_with("]")) {
                         this->context->logger->error("ARGS variable must be accessed with an index, e.g., ARGS[0].");
-                        exit(1);
+                        end(this->context.get());
                 }
 
                 std::vector<std::string> args = this->macro_args.top();
                 int index = get_variable_number(action);
                 if (index < 0 || index >= args.size()) {
                         this->context->logger->error("Index out of bounds for ARGS variable: " + variable_name);
-                        exit(1);
+                        end(this->context.get());
                 }
                 return args[index];
         }
@@ -282,8 +282,9 @@ std::string Preprocessor::do_action(const std::string& action) {
                 return context->rules.variable_prefix.value() + action + context->rules.variable_suffix.value();
         } else {
                 this->context->logger->error("Variable '" + action + "' not found and strict variables are enabled.");
-                exit(1);
+                end(this->context.get());
         }
+        return "";
 }
 
 std::string Preprocessor::process_code_flow(const std::string& action) {
@@ -309,7 +310,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                                         this->context->logger->trace(" - " + inc.string());
                                 }
                         }
-                        exit(1);
+                        end(this->context.get());
                 }
 
                 this->context->logger->trace("Adding include path to including stack: " + include_path.string());
@@ -318,7 +319,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                 std::ifstream include_file(include_path);
                 if (!include_file) {
                         this->context->logger->error("Error opening include file: " + include_path.string());
-                        exit(1);
+                        end(this->context.get());
                 }
                 std::string include_content(
                     std::istreambuf_iterator<char>(include_file),
@@ -387,7 +388,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                 this->ignore_all = 0;
                 if (this->current_depth < 0) {
                         this->context->logger->error("Unmatched 'endif' in code flow.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (this->current_depth < this->ignore_depth) {
                         this->context->logger->debug("Resetting ignore_next flag, because current depth is less than ignore depth.");
@@ -433,7 +434,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                                 }
                         } else {
                                 this->context->logger->error("Invalid profile data format.");
-                                exit(1);
+                                end(this->context.get());
                         }
 
                         this->context->logger->trace("Deleting profile name and output after definition");
@@ -454,7 +455,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                         this->output.clear();
                 } else {
                         this->context->logger->error("Found 'end_define' without a matching define.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 return "";
         } else if (this_state == FlowState::DEFINE_MACRO) {
@@ -464,7 +465,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                 this->macro_name = output;
                 if (this->macro_name.empty()) {
                         this->context->logger->error("Macro name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->debug("Macro name set to: " + this->macro_name);
                 return "";
@@ -474,7 +475,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                 output.erase(0, macro_name.length() + 1);
                 if (macro_name.empty()) {
                         this->context->logger->error("Macro name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->debug("Executing macro: " + macro_name);
                 this->macro_args.push(get_variable_values(output));
@@ -515,14 +516,14 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                         this->context->logger->trace("Trying to process for loop variables");
                         if (for_variable.empty() || for_array.empty()) {
                                 this->context->logger->error("For loop variable or array cannot be empty.");
-                                exit(1);
+                                end(this->context.get());
                         }
 
                         this->context->logger->trace("Trying to find array for for loop: " + for_array);
 
                         if (context->variables.find(for_array) == context->variables.end()) {
                                 this->context->logger->error("For loop array '" + for_array + "' not found.");
-                                exit(1);
+                                end(this->context.get());
                         }
 
                         this->context->logger->debug("For loop variable: " + for_variable);
@@ -563,7 +564,7 @@ std::vector<std::string> Preprocessor::get_variable_values(std::string variable)
                         size_t end_quote = variable.find('"', 1);
                         if (end_quote == std::string::npos) {
                                 this->context->logger->error("Unmatched quote in variable: " + variable);
-                                exit(1);
+                                end(this->context.get());
                         }
                         result.push_back(variable.substr(1, end_quote - 1));
                         variable.erase(0, end_quote + 1);
@@ -602,7 +603,7 @@ std::vector<std::string> Preprocessor::get_variable_values(std::string variable)
                         if (context->variables.find(variable_name) != context->variables.end()) {
                                 if (index < 0 || index >= context->variables[variable_name].size()) {
                                         this->context->logger->error("Index out of bounds for variable: " + variable_name);
-                                        exit(1);
+                                        end(this->context.get());
                                 }
                                 variable_value = context->variables[variable_name][index];
                                 this->context->logger->trace("Found variable: " + variable_name + " with value: " + variable_value);
@@ -627,11 +628,11 @@ std::map<std::string,std::vector<std::string>> Preprocessor::get_variables(const
                 std::string variable_name = key;
                 if (variable_name.empty()) {
                         this->context->logger->error("Variable name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (value.is_null()) {
                         this->context->logger->error("Variable value cannot be null for variable: " + variable_name);
-                        exit(1);
+                        end(this->context.get());
                 }
 
                 this->context->logger->trace("Processing variable: " + variable_name);
@@ -653,7 +654,7 @@ std::map<std::string,std::vector<std::string>> Preprocessor::get_variables(const
                         for (const auto& item : value.as_array()) {
                                 if (item.is_null() || item.is_array() || item.is_map()) {
                                         this->context->logger->error("Variable value cannot be null, array, or map for variable: " + variable_name);
-                                        exit(1);
+                                        end(this->context.get());
                                 }
                                 if (item.is_string()) {
                                         this->context->logger->trace("Array item is a string: " + item.as_string());
@@ -674,7 +675,7 @@ std::map<std::string,std::vector<std::string>> Preprocessor::get_variables(const
                         variable_list[variable_name] = values;
                 } else {
                         this->context->logger->error("Unsupported variable type for variable: " + variable_name);
-                        exit(1);
+                        end(this->context.get());
                 }
         }
         return variable_list;
@@ -686,12 +687,12 @@ std::unordered_set<std::string> Preprocessor::get_ignore(const Data& ignore) {
         this->context->logger->trace("Processing ignore list from Data object");
         if (!ignore.is_array()) {
                 this->context->logger->error("Ignore must be an array.");
-                exit(1);
+                end(this->context.get());
         }
         for (const auto& item : ignore.as_array()) {
                 if (!item.is_string()) {
                         this->context->logger->error("Ignore items must be strings.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Adding item to ignore list: " + item.as_string());
                 ignore_list.insert(item.as_string());
@@ -703,17 +704,17 @@ std::map<std::string,std::string> Preprocessor::get_rules(const Data& rules) {
         std::map<std::string,std::string> rule_set;
         if (!rules.is_map()) {
                 this->context->logger->error("Rules must be a map.");
-                exit(1);
+                end(this->context.get());
         }
         for (const auto& [key, value] : rules.as_map()) {
                 std::string rule_name = key;
                 if (rule_name.empty()) {
                         this->context->logger->error("Rule name cannot be empty.");
-                        exit(1);
+                        end(this->context.get());
                 }
                 if (!value.is_string() && !value.is_bool() && !value.is_int() && !value.is_double()) {
                         this->context->logger->error("Rule value must be a string, boolean, integer, or double for rule: " + rule_name);
-                        exit(1);
+                        end(this->context.get());
                 }
                 this->context->logger->trace("Processing rule {} for name: {}", rule_name, value.as_string());
                 rule_set[rule_name] = value.as_string();
