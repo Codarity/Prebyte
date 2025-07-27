@@ -13,6 +13,9 @@ enum class ActionType {
         VERSION,
         LIST_RULES,
         LIST_VARIABLES,
+        API_IN_API_OUT,
+        API_IN_FILE_OUT,
+        FILE_IN_API_OUT,
         HARD_HELP
 };
 

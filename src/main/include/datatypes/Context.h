@@ -14,6 +14,8 @@ namespace prebyte {
 struct Context {
         ActionType action_type;
         Rules rules;
+        std::string input;
+        std::string output;
         std::chrono::high_resolution_clock::time_point start_time;
         std::map<std::string,std::vector<std::string>> variables;
         std::vector<std::string> inputs;

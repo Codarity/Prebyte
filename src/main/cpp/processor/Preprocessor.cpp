@@ -24,6 +24,7 @@ std::string Preprocessor::get_input() const {
 
     switch (context->action_type) {
         case ActionType::FILE_IN_FILE_OUT:
+        case ActionType::FILE_IN_API_OUT:
         case ActionType::FILE_IN_STDOUT: {
             std::filesystem::path input_path = context->inputs[0];
             std::ifstream input_file(input_path);
@@ -57,6 +58,10 @@ std::string Preprocessor::get_input() const {
             break;
         }
 
+        case ActionType::API_IN_FILE_OUT:
+        case ActionType::API_IN_API_OUT: {
+                return context->input;
+        }
         default:
             std::cerr << "Error: Unsupported action type." << std::endl;
             return "";
@@ -77,6 +82,7 @@ void Preprocessor::make_output() const {
                         output_file << output;
                         break;
                 }
+                case ActionType::API_IN_FILE_OUT:
                 case ActionType::STDIN_FILE_OUT: {
                         std::filesystem::path output_path = context->inputs[0];
                         std::ofstream output_file(output_path);
@@ -91,6 +97,9 @@ void Preprocessor::make_output() const {
                 case ActionType::STDIN_STDOUT:
                         std::cout << output;
                         break;
+                case ActionType::API_IN_API_OUT:
+                case ActionType::FILE_IN_API_OUT:
+                        this->context->output = output;
                 default:
                         std::cerr << "Unknown action type." << std::endl;
                         break;
