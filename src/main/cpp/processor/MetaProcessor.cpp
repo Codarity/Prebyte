@@ -410,7 +410,7 @@ void Metaprocessor::list_variables() {
                         found_variables += var.first + "=" + var.second[0] + "  ";
                         std::cout << var.first << " = " << var.second[0] << std::endl;
                 } else {
-                        context->logger->trace("Variable {} has multiple values: {}", var.first, var.second);
+                        context->logger->trace("Variable {} has multiple values", var.first);
                         found_variables += var.first + "=[";
                         std::cout << var.first << "=[";
                         for (size_t i = 0; i < var.second.size(); ++i) {

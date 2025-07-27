@@ -267,7 +267,7 @@ void Prebyte::set_variable(const std::string& name) {
 }
 
 void Prebyte::set_variable(const std::string& name, std::vector<std::string> values) {
-        context->logger->trace("Setting variable '{}' to values '{}'", name, values);
+        context->logger->trace("Setting variable '{}'", name);
         context->variables[name] = values;
 }
 
@@ -275,7 +275,7 @@ void Prebyte::set_profile(const std::string& profile_name) {
         Profile profile = context->profiles[profile_name];
         context->logger->trace("Setting profile: {}", profile_name);
         for (const auto& [key,value] : profile.get_variables()) {
-                context->logger->trace("Setting variable '{}' to value '{}'", key, value);
+                context->logger->trace("Setting variable '{}'", key);
                 context->variables[key] = {value};
         }
         for (const auto& ignore_item : profile.get_ignore()) {

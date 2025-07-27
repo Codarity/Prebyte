@@ -111,8 +111,7 @@ void ContextProcessor::load_profiles() {
                                       profile.get_ignore().size(), profile.get_rules().size());
                 this->context->logger->debug("Adding variables from active profile: '{}'", profile_name);
                 for (const auto& [key,value] : profile.get_variables()) {
-                        this->context->logger->trace("Profile: '{}' variable: '{}' with value: '{}'", 
-                                      profile_name, key, value);
+                        this->context->logger->trace("Profile: '{}' variable: '{}'", profile_name, key);
                         context->variables[key] = {value};
                 }
                 this->context->logger->debug("Adding ignore variables from active profile: '{}'", profile_name);
@@ -122,8 +121,8 @@ void ContextProcessor::load_profiles() {
                 }
                 this->context->logger->debug("Adding rules from active profile: '{}'", profile_name);
                 for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                        this->context->logger->trace("Profile: '{}' rule: '{}' with value: '{}'", 
-                                      profile_name, rule_name, rule_value);
+                        this->context->logger->trace("Profile {} adding rule {}", 
+                                      profile_name, rule_name);
                         context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
                 }
         }
@@ -168,7 +167,14 @@ void ContextProcessor::load_variables() {
                                 }
                         }
                         context->variables[var_name] = values;
-                        this->context->logger->trace("Variable '{}' added with values: {}", var_name, values);
+                        if (context->logger->should_log(spdlog::level::trace)) {
+                                std::string value_str = "Variable " + var_name +" added with values: [";
+                                for (const auto& val : values) {
+                                        value_str += "'" + val + "', ";
+                                }
+                                value_str = value_str.substr(0, value_str.size() - 2) + "]";
+                                this->context->logger->trace(value_str);
+                        }
                         continue;
                 }
                 this->context->logger->debug("Adding variable '{}' with value '{}'", var_name, var_value);
@@ -298,7 +304,14 @@ std::map<std::string,std::vector<std::string>> ContextProcessor::get_variables(c
                                 }
                                 values.push_back(item.as_string());
                         }
-                        this->context->logger->trace("Array variable: '{}' with values: {}", variable_name, values);
+                        if (this->context->logger->should_log(spdlog::level::trace)) {
+                                std::string value_str = "Variable " + variable_name + " added with values: [";
+                                for (const auto& val : values) {
+                                        value_str += "'" + val + "', ";
+                                }
+                                value_str = value_str.substr(0, value_str.size() - 2) + "]";
+                                this->context->logger->trace(value_str);
+                        }
                         variable_list[variable_name] = values;
                 } else {
                         this->context->logger->error("Unsupported variable type for variable: {}", variable_name);
