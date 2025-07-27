@@ -1,7 +1,7 @@
 #include "datatypes/Rules.h"
 
 namespace prebyte {
-void Rules::add_rule(std::string rule_name, const Data& rule_data) {
+spdlog::level::level_enum Rules::add_rule(std::string rule_name, const Data& rule_data) {
         if (rule_name == "strict_variables") {
                 this->strict_variables = rule_data.as_bool();
         } else if (rule_name == "set_default_variables") {
@@ -17,13 +17,15 @@ void Rules::add_rule(std::string rule_name, const Data& rule_data) {
         } else if (rule_name == "debug_level") {
                 std::string debug_level_str = get_string(rule_data);
                 if (debug_level_str == "ERROR") {
-                        this->debug_level = DebugLevel::ERROR;
+                        this->debug_level = spdlog::level::err;
                 } else if (debug_level_str == "WARNING") {
-                        this->debug_level = DebugLevel::WARNING;
+                        this->debug_level = spdlog::level::warn;
                 } else if (debug_level_str == "INFO") {
-                        this->debug_level = DebugLevel::INFO;
+                        this->debug_level = spdlog::level::info;
                 } else if (debug_level_str == "DEBUG") {
-                        this->debug_level = DebugLevel::DEBUG;
+                        this->debug_level = spdlog::level::debug;
+                } else if (debug_level_str == "OFF") {
+                        this->debug_level = spdlog::level::off;
                 } else {
                         throw std::runtime_error("Unknown debug level: " + debug_level_str);
                 }
@@ -55,6 +57,7 @@ void Rules::add_rule(std::string rule_name, const Data& rule_data) {
         } else {
                 throw std::runtime_error("Unknown rule: " + rule_name);
         }
+        return this->debug_level.value_or(spdlog::level::err);
 }
 
 
@@ -86,7 +89,7 @@ void Rules::init() {
         this->trim_end = false;
         this->allow_env = true;
         this->allow_env_fallback = false;
-        this->debug_level = DebugLevel::ERROR;
+        this->debug_level = spdlog::level::err;
         this->max_variable_length = -1; // -1 means no limit
         this->default_variable_value = "???";
         this->variable_prefix = "%%";

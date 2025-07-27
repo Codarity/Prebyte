@@ -35,6 +35,10 @@ private:
         std::unordered_set<std::string> get_ignore(const Data& ignore);
         std::map<std::string, std::string> get_rules(const Data& rules);
 
+
+        void set_logger();
+        std::string expand_tilde(const std::string& path);
+
         std::string get_string(Data data) const;
         int get_int(Data data) const;
         double get_double(Data data) const;

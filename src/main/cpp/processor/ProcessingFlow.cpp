@@ -25,11 +25,11 @@ std::string ProcessingFlow::_SET_RULE(const std::string& action) {
         if (action.empty()) return "";
         size_t equal_pos = action.find('=');
         if (equal_pos == std::string::npos) {
-                this->context->rules.add_rule(action, Data());
+                context->console_sink->set_level(this->context->rules.add_rule(action, Data()));
         } else {
                 std::string rule_name = action.substr(0, equal_pos);
                 std::string rule_value = action.substr(equal_pos + 1);
-                this->context->rules.add_rule(rule_name, Data(rule_value));
+                context->console_sink->set_level(this->context->rules.add_rule(rule_name, Data(rule_value)));
         }
         return "";
 }
@@ -53,7 +53,7 @@ std::string ProcessingFlow::_SET_PROFILE(const std::string& action) {
                 context->ignore.insert(ignore_item);
         }
         for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                context->rules.add_rule(rule_name, Data(rule_value));
+                context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
         }
         return "";
 }

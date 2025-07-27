@@ -8,6 +8,7 @@ ContextProcessor::ContextProcessor(const CliStruct& cli_struct)
 
 Context ContextProcessor::process() {
         this->context.rules.init();
+        this->set_logger();
         this->context.start_time = cli_struct.start_time;
         load_action_type();
         load_settings();
@@ -93,7 +94,7 @@ void ContextProcessor::load_profiles() {
                         context.ignore.insert(ignore_item);
                 }
                 for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                        context.rules.add_rule(rule_name, Data(rule_value));
+                        context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_value)));
                 }
         }
 }
@@ -176,13 +177,13 @@ void ContextProcessor::load_rules() {
                 if (rule_name.empty() || rule_value.empty()) {
                         throw std::runtime_error("Rule name or value cannot be empty.");
                 }
-                context.rules.add_rule(rule_name, Data(rule_value));
+                context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_value)));
         }
 }
 
 void ContextProcessor::load_rules(const std::map<std::string, std::string>& rules) {
         for (const auto& [rule_name, rule_data] : rules) {
-                context.rules.add_rule(rule_name, Data(rule_data));
+                context.console_sink->set_level(context.rules.add_rule(rule_name, Data(rule_data)));
         }
 }
 
@@ -286,6 +287,36 @@ std::map<std::string,std::string> ContextProcessor::get_rules(const Data& rules)
                 rule_set[rule_name] = value.as_string();
         }
         return rule_set;
+}
+
+
+void ContextProcessor::set_logger() {
+        if (this->context.logger) {
+                return;
+        }
+        pid_t pid = getpid();
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(expand_tilde("~/.prebyte/prebyte.log"), false);
+        file_sink->set_level(spdlog::level::debug);
+        std::string file_pattern = "%Y-%m-%d %H:%M:%S.%e {" + std::to_string(pid) + "} [%l] %v";
+        file_sink->set_pattern(file_pattern);
+
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(spdlog::level::err);
+        console_sink->set_pattern("%^[%l] %v%$");
+
+        context.console_sink = console_sink;
+
+        context.logger = std::make_shared<spdlog::logger>("prebyte", spdlog::sinks_init_list{file_sink, console_sink});
+}
+
+std::string ContextProcessor::expand_tilde(const std::string& path) {
+    if (path.starts_with("~/")) {
+        const char* home = std::getenv("HOME");
+        if (home) {
+            return std::string(home) + path.substr(1);
+        }
+    }
+    return path;
 }
 
 

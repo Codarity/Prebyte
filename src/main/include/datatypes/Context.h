@@ -5,6 +5,10 @@
 #include <map>
 #include <unordered_set>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "datatypes/Rules.h"
 #include "datatypes/ActionType.h"
 #include "datatypes/Profile.h"
@@ -13,6 +17,8 @@ namespace prebyte {
 
 struct Context {
         ActionType action_type;
+        std::shared_ptr<spdlog::logger> logger;
+        std::shared_ptr<spdlog::sinks::sink> console_sink;
         Rules rules;
         std::string input;
         std::string output;

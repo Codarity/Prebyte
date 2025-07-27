@@ -351,9 +351,12 @@ void Metaprocessor::list_rules() {
         rules_list += "allow_env_fallback: " + std::string(context->rules.allow_env_fallback.value() ? "true" : "false") + "\n";
         rules_list += "debug_level: ";
         rules_list +=
-            (context->rules.debug_level.value() == DebugLevel::ERROR   ? "[ERROR] "
-             : context->rules.debug_level.value() == DebugLevel::WARNING ? "[WARNING] "
-             : context->rules.debug_level.value() == DebugLevel::INFO    ? "[INFO] "
+            (context->rules.debug_level.value() == spdlog::level::err   ? "[ERROR] "
+             : context->rules.debug_level.value() == spdlog::level::warn ? "[WARNING] "
+             : context->rules.debug_level.value() == spdlog::level::info    ? "[INFO] "
+             : context->rules.debug_level.value() == spdlog::level::debug ? "[DEBUG] "
+             : context->rules.debug_level.value() == spdlog::level::trace ? "[TRACE] "
+             : context->rules.debug_level.value() == spdlog::level::off   ? "[OFF] "
              : "[DEBUG] ");
         rules_list += "\n";
 

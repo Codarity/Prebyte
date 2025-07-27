@@ -1,8 +1,11 @@
 #pragma once
 
+#include <spdlog/common.h>
 #include <string>
 #include <optional>
 #include <filesystem>
+
+#include <spdlog/spdlog.h>
 
 #include "datatypes/Data.h"
 
@@ -16,6 +19,7 @@ enum class Benchmark {
 };
 
 enum class DebugLevel {
+        OFF,
         ERROR,
         WARNING,
         INFO,
@@ -29,7 +33,7 @@ struct Rules {
         std::optional<bool> trim_end;
         std::optional<bool> allow_env;
         std::optional<bool> allow_env_fallback;
-        std::optional<DebugLevel> debug_level;
+        std::optional<spdlog::level::level_enum> debug_level;
         std::optional<int> max_variable_length; // -1 = unlimited
         std::optional<std::string> default_variable_value;
         std::optional<std::string> variable_prefix;
@@ -37,7 +41,7 @@ struct Rules {
         std::optional<std::string> include_path;
 
         std::optional<Benchmark> benchmark;
-        void add_rule(std::string rule_name, const Data& rule_data);
+        spdlog::level::level_enum add_rule(std::string rule_name, const Data& rule_data);
 
         std::string get_string(Data data);
         int get_int(Data data);

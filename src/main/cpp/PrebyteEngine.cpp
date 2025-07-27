@@ -19,8 +19,8 @@ std::map<std::string,std::vector<std::string>> get_variables(const Data& variabl
 void load_rules(const std::map<std::string, std::string>& rules);
 
 Prebyte::Prebyte(std::string settings_file) {
-        context = std::make_unique<Context>();
-        context->rules.init();
+        context = std::make_unique<prebyte::Context>();
+        context->rules.init(context->);
         context->start_time = std::chrono::high_resolution_clock::now();
 
         std::filesystem::path settings_path;
@@ -63,7 +63,7 @@ Prebyte::Prebyte() : Prebyte("") {}
 
 void load_rules(const std::map<std::string, std::string>& rules) {
         for (const auto& [rule_name, rule_data] : rules) {
-                context->rules.add_rule(rule_name, Data(rule_data));
+                context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_data)));
         }
 }
 
@@ -216,7 +216,7 @@ void Prebyte::set_profile(const std::string& profile_name) {
                 context->ignore.insert(ignore_item);
         }
         for (const auto& [rule_name, rule_value] : profile.get_rules()) {
-                context->rules.add_rule(rule_name, Data(rule_value));
+                context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
         }
 }
 
@@ -225,7 +225,7 @@ void Prebyte::set_ignore(const std::string& ignore_item) {
 }
 
 void Prebyte::set_rule(const std::string& rule_name, const std::string& rule_value) {
-        context->rules.add_rule(rule_name, Data(rule_value));
+        context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_value)));
 }
 
 std::string Prebyte::process(const std::string& input) {
@@ -258,6 +258,34 @@ void Prebyte::process_file(const std::string& file_path, const std::string& outp
         context->inputs.push_back(output_path);
         Preprocessor preprocessor(context.get());
         preprocessor.process();
+}
+
+void Prebyte::set_logger() {
+        if (context->logger) {
+                return;
+        }
+        pid_t pid = getpid();
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(expand_tilde("~/.prebyte/prebyte.log"), false);
+        file_sink->set_level(spdlog::level::debug);
+        std::string file_pattern = "%Y-%m-%d %H:%M:%S.%e {" + std::to_string(pid) + "} [%l] %v";
+        file_sink->set_pattern(file_pattern);
+
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(spdlog::level::err);
+        console_sink->set_pattern("%^[%l] %v%$");
+        context->console_sink = console_sink;
+
+        context->logger = std::make_shared<spdlog::logger>("prebyte", spdlog::sinks_init_list{file_sink, console_sink});
+}
+
+std::string Prebyte::expand_tilde(const std::string& path) {
+    if (path.starts_with("~/")) {
+        const char* home = std::getenv("HOME");
+        if (home) {
+            return std::string(home) + path.substr(1);
+        }
+    }
+    return path;
 }
 
 }
