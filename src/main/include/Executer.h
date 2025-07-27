@@ -10,10 +10,10 @@ namespace prebyte {
 
 class Executer {
 private:
-        Context* context;
+        std::unique_ptr<Context> context;
 
 public:
-        Executer(Context* context);
+        Executer(std::unique_ptr<Context> context);
         void execute();
 };
 

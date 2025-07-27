@@ -54,7 +54,7 @@ private:
 
         std::string get_time_conversion(const std::chrono::nanoseconds& duration) const;
 public:
-        Preprocessor(Context* context);
+        Preprocessor(std::unique_ptr<Context> context);
         void process() override;
 };
 

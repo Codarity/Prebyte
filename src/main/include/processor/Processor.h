@@ -14,7 +14,7 @@ namespace prebyte {
 
 class Processor {
 protected:
-        Context* context;
+        std::unique_ptr<Context> context;
         std::string get_variable(const std::string& variable_name) const;
         std::string get_variable_name(const std::string& action) const;
         std::string get_variable_value(const std::string& action, bool pattern) const;

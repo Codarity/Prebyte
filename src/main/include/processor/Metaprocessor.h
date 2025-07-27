@@ -19,7 +19,7 @@ private:
         void list_rules();
         void list_variables();
 public:
-        Metaprocessor(Context* context);
+        Metaprocessor(std::unique_ptr<Context> context);
 
         void process() override;
 };

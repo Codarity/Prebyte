@@ -19,11 +19,11 @@ int main(int argc, char** argv) {
 
                 prebyte::CliParser cli_parser;
                 prebyte::CliStruct cli_struct = cli_parser.parse(args);
-                prebyte::ContextProcessor context_processor(cli_struct);
-                prebyte::Context* context = context_processor.process();
-                prebyte::Executer executer(context);
+                std::unique_ptr<prebyte::Context> context = std::make_unique<prebyte::Context>();
+                prebyte::ContextProcessor context_processor(cli_struct, std::move(context));
+                context = context_processor.process();
+                prebyte::Executer executer(std::move(context));
                 executer.execute();
-                delete context;
         } catch (const std::exception& e) {
                 std::cerr << "Error: " << e.what() << std::endl;
                 return 1;

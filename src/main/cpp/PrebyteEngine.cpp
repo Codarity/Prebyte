@@ -20,7 +20,8 @@ void load_rules(const std::map<std::string, std::string>& rules);
 
 Prebyte::Prebyte(std::string settings_file) {
         context = std::make_unique<prebyte::Context>();
-        context->rules.init(context->);
+        set_logger();
+        context->rules.init();
         context->start_time = std::chrono::high_resolution_clock::now();
 
         std::filesystem::path settings_path;
@@ -231,7 +232,7 @@ void Prebyte::set_rule(const std::string& rule_name, const std::string& rule_val
 std::string Prebyte::process(const std::string& input) {
         context->action_type = ActionType::API_IN_API_OUT;
         context->input = input;
-        Preprocessor preprocessor(context.get());
+        Preprocessor preprocessor(std::move(context));
         preprocessor.process();
         return context->output;
 }
@@ -239,7 +240,7 @@ std::string Prebyte::process(const std::string& input) {
 std::string Prebyte::process_file(const std::string& file_path) {
         context->action_type = ActionType::FILE_IN_API_OUT;
         context->inputs.push_back(file_path);
-        Preprocessor preprocessor(context.get());
+        Preprocessor preprocessor(std::move(context));
         preprocessor.process();
         return context->output;
 }
@@ -248,7 +249,7 @@ void Prebyte::process(const std::string& input, const std::string& output_path) 
         context->action_type = ActionType::API_IN_FILE_OUT;
         context->input = input;
         context->inputs.push_back(output_path);
-        Preprocessor preprocessor(context.get());
+        Preprocessor preprocessor(std::move(context));
         preprocessor.process();
 }
 
@@ -256,7 +257,7 @@ void Prebyte::process_file(const std::string& file_path, const std::string& outp
         context->action_type = ActionType::FILE_IN_FILE_OUT;
         context->inputs.push_back(file_path);
         context->inputs.push_back(output_path);
-        Preprocessor preprocessor(context.get());
+        Preprocessor preprocessor(std::move(context));
         preprocessor.process();
 }
 

@@ -15,7 +15,7 @@ namespace prebyte {
 class ContextProcessor {
 private:
         CliStruct cli_struct;
-        Context* context;
+        std::unique_ptr<Context> context;
         ActionType action_type;
 
         void determine_action_type();
@@ -47,8 +47,8 @@ private:
                    const std::map<std::string, std::string>& source);
 
 public:
-        ContextProcessor(const CliStruct& cli_struct);
-        Context* process();
+        ContextProcessor(const CliStruct& cli_struct, std::unique_ptr<Context> context);
+        std::unique_ptr<Context> process();
 };
 
 }  // namespace prebyte

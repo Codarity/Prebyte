@@ -2,11 +2,12 @@
 
 namespace prebyte {
 
-Metaprocessor::Metaprocessor(Context* context) : Processor() {
-        this->context = context;
+Metaprocessor::Metaprocessor(std::unique_ptr<Context> context) : Processor() {
+        this->context = std::move(context);
 }
 
 void Metaprocessor::process() {
+        this->context->logger->debug("Starting metaprocessing...");
         switch (context->action_type) {
         case ActionType::EXPLAIN:
                 explain();
@@ -27,7 +28,7 @@ void Metaprocessor::process() {
                 list_variables();
                 break;
         default:
-                std::cerr << "Unknown action type: " << static_cast<int>(context->action_type) << std::endl;
+                this->context->logger->error("Unknown action type: {}", static_cast<int>(context->action_type));
                 help();
                 break;
         }
@@ -35,8 +36,12 @@ void Metaprocessor::process() {
 
 void Metaprocessor::explain() {
         std::string explanation;
+        this->context->logger->debug("Executing explain command");
         
         if (context->inputs.empty()) {
+                this->context->logger->debug("Explain command has no input");
+                this->context->logger->debug("Showing general explanation");
+
                 explanation = "Prebyte is a tool for processing files with various commands.\n"
                               "You can use it to read files, write output, and manage rules and variables.\n\n"
                               "If no input file is specified, prebyte will read from standard input and write to standard output.\n"
@@ -45,6 +50,9 @@ void Metaprocessor::explain() {
                 return;
         }
         std::string input = context->inputs[0];
+
+        this->context->logger->debug("Input for explain command: {}", input);
+        this->context->logger->debug("Writing explanation for input: {}", input);
 
         if (input == "ARGS") {
                 explanation = "ARGS is a special Array in Prebyte that contains all the arguments passed to a macro.\n"
@@ -280,19 +288,21 @@ void Metaprocessor::explain() {
                               "For example, to write the output to a file, you would use: prebyte -o path/to/output.txt or prebyte --output output.txt\n"
                               "If an input file is specified, Prebyte will read from that file and write to standard output by default.";
         } else {
-                explanation = "Unknown input: " + input + "\n"
-                              "Please refer to the help command for more information.";
+                this->context->logger->error("Unknown input for explain command: {}", input);
+                explanation = "Please refer to the help command for more information.";
         }
 
         std::cout << explanation << std::endl;
 }
 
 void Metaprocessor::help() {
-        std::cout << "   Usage: prebyte <command> [options]\n\n"
-         << "   Prebyte is a tool for processing files with various commands.\n"
-         << "   You can use it to read files, write output, and manage rules and variables.\n\n"
-         << "   If no input file is specified, prebyte will read from standard input and write to standard output.\n"
-         << "   If an input file is specified, prebyte will read from that file and write to standard output by default.\n\n"
+        this->context->logger->debug("Showing help message");
+
+std::cout << "   Usage: prebyte <command> [options]\n\n"
+         << "      Prebyte is a tool for processing files with various commands.\n"
+         << "      You can use it to read files, write output, and manage rules and variables.\n\n"
+         << "      If no input file is specified, prebyte will read from standard input and write to standard output.\n"
+         << "      If an input file is specified, prebyte will read from that file and write to standard output by default.\n\n"
 
          << "   Available commands:\n"
          << "\t<file>                  Process the specified file\n"
@@ -332,16 +342,18 @@ void Metaprocessor::help() {
 }
 
 void Metaprocessor::hard_help() {
-        std::cerr << "Error: Invalid command or options provided.\n"
-         << "Use -h or --help to see the usage instructions.\n";
+        this->context->logger->debug("Showing hard help message, because no matching command or options were provided");
+        this->context->logger->error("Invalid command or options provided.\n");
         std::exit(1);
 }
 
 void Metaprocessor::version() {
+        this->context->logger->debug("Showing version information");
         std::cout << "Prebyte Version: " << VERSION << std::endl;
 }
 
 void Metaprocessor::list_rules() {
+        this->context->logger->debug("Listing used rules");
         std::string rules_list;
         rules_list += "strict_variables: " + std::string(context->rules.strict_variables.value() ? "true" : "false") + "\n";
         rules_list += "set_default_variables: " + std::string(context->rules.set_default_variables.value() ? "true" : "false") + "\n";
@@ -375,30 +387,44 @@ void Metaprocessor::list_rules() {
                             : context->rules.benchmark.value() == Benchmark::MEMORY ? "Memory"
                             : "All");
 
+        std::string rules_debug_list = "Used Rules:  " + rules_list;
+        std::replace(rules_debug_list.begin(), rules_debug_list.end(), '\n', ' ');
+        this->context->logger->debug("Used Rules: {}", rules_debug_list);
+
         std::cout << "Used Rules:\n\n" << rules_list << std::endl;
 }
 
 void Metaprocessor::list_variables() {
+        this->context->logger->debug("Listing used variables");
         if (context->variables.empty()) {
-                std::cout << "No variables defined." << std::endl;
+                this->context->logger->warn("No variables defined");
                 return;
         }
 
+        this->context->logger->debug("Listing defined variables");
         std::cout << "Defined variables: \n" << std::endl;
+        std::string found_variables = "";
         for (const auto& var : context->variables) {
                 if (var.second.size() == 1) {
+                        context->logger->trace("Variable {} has a single value: {}", var.first, var.second[0]);
+                        found_variables += var.first + "=" + var.second[0] + "  ";
                         std::cout << var.first << " = " << var.second[0] << std::endl;
                 } else {
-                        std::cout << var.first << " = [";
+                        context->logger->trace("Variable {} has multiple values: {}", var.first, var.second);
+                        found_variables += var.first + "=[";
+                        std::cout << var.first << "=[";
                         for (size_t i = 0; i < var.second.size(); ++i) {
                                 std::cout << var.second[i];
                                 if (i < var.second.size() - 1) {
+                                found_variables += var.second[i] + ",";
                                         std::cout << ", ";
                                 }
                         }
+                        found_variables += "]";
                         std::cout << "]" << std::endl;
                 }
         }
+        this->context->logger->debug("Found variables: {}", found_variables);
 }
 
 }
