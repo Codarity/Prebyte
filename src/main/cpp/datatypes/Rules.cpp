@@ -47,8 +47,6 @@ void Rules::add_rule(std::string rule_name, const Data& rule_data) {
                         this->benchmark = Benchmark::NONE;
                 } else if (benchmark_str == "TIME") {
                         this->benchmark = Benchmark::TIME;
-                } else if (benchmark_str == "MEMORY") {
-                        this->benchmark = Benchmark::MEMORY;
                 } else if (benchmark_str == "ALL") {
                         this->benchmark = Benchmark::ALL;
                 } else {

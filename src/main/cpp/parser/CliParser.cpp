@@ -3,6 +3,7 @@
 namespace prebyte {
 
 CliStruct CliParser::parse(std::list<std::string> args) {
+        this->cli_struct.start_time = std::chrono::high_resolution_clock::now();
         this->cli_struct.action = this->findAction(&args);
         this->process(std::vector<std::string>(args.begin(), args.end()));
         return this->cli_struct;

@@ -16,6 +16,7 @@ void Preprocessor::process() {
         this->output = this->process_all(this->input);
 
         this->make_output();
+        this->make_benchmark();
 }
 
 std::string Preprocessor::get_input() const {
@@ -248,6 +249,7 @@ std::string Preprocessor::process_code_flow(const std::string& action) {
                     std::istreambuf_iterator<char>(include_file),
                     std::istreambuf_iterator<char>{}
                 );
+                this->context->include_counter++;
                 std::string result = process_all(include_content);
                 processed_includes.pop_back();
                 return result;
@@ -524,6 +526,36 @@ std::map<std::string,std::string> Preprocessor::get_rules(const Data& rules) {
                 rule_set[rule_name] = value.as_string();
         }
         return rule_set;
+}
+
+void Preprocessor::make_benchmark() const {
+        if (context->rules.benchmark.value() == Benchmark::NONE) {
+                return;
+        }
+        std::cout << "______________________________________________________________" << std::endl;
+        std::cout << "| Benchmarking results:                                      |" << std::endl;
+        std::cout << "______________________________________________________________" << std::endl;
+        if (context->rules.benchmark.value() == Benchmark::TIME || context->rules.benchmark.value() == Benchmark::ALL) {
+                std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - context->start_time);
+                std::cout << "Time: " << this->get_time_conversion(duration) << std::endl;
+        }
+        std::cout << "Includes processed: " << context->include_counter << std::endl;
+        std::cout << "Current Variables set: " << context->variables.size() << " variables." << std::endl;
+}
+
+std::string Preprocessor::get_time_conversion(const std::chrono::nanoseconds& duration) const {
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration - seconds);
+    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds - milliseconds);
+
+    if (seconds.count() > 0) {
+            return std::to_string(seconds.count()) + "." + std::to_string(milliseconds.count()) + "s";
+    } else if (milliseconds.count() > 0) {
+            return std::to_string(milliseconds.count()) + "." + std::to_string(nanoseconds.count()) + "ms";
+    } else {
+            return std::to_string(nanoseconds.count()) + "ns";
+    }
 }
 
 

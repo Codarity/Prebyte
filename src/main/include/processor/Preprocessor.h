@@ -15,6 +15,7 @@
 #include "parser/YamlParser.h"
 #include "datatypes/Profile.h"
 #include "parser/StringParser.h"
+#include "datatypes/Rules.h"
 
 namespace prebyte {
 
@@ -44,11 +45,14 @@ private:
         std::string do_action(const std::string& action);
         std::string process_code_flow(const std::string& action);
         void add_string(std::string& output, const std::string& str);
+        void make_benchmark() const;
 
         std::map<std::string,std::string> get_rules(const Data& rules);
         std::unordered_set<std::string> get_ignore(const Data& ignore);
         std::map<std::string,std::vector<std::string>> get_variables(const Data& variables);
         std::vector<std::string> get_variable_values(std::string variable);
+
+        std::string get_time_conversion(const std::chrono::nanoseconds& duration) const;
 public:
         Preprocessor(Context* context);
         void process() override;

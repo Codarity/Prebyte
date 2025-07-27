@@ -8,6 +8,7 @@ ContextProcessor::ContextProcessor(const CliStruct& cli_struct)
 
 Context ContextProcessor::process() {
         this->context.rules.init();
+        this->context.start_time = cli_struct.start_time;
         load_action_type();
         load_settings();
         load_profiles();
