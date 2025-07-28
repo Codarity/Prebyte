@@ -121,7 +121,7 @@ void CliParser::process(const std::vector<std::string>& args) {
                 } else if (arg == "--off") {
                         this->cli_struct.log_level = "OFF";
                 } else {
-                        this->cli_struct.warning_message = "Unknown argument: " + arg;
+                        throw std::runtime_error("Unknown argument: " + arg);
                 }
 
         }
