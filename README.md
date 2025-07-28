@@ -8,9 +8,9 @@ Use it as a **CLI tool** or embed it as a **C++ library**.
 
 ## 🚀 Features
 
-*  **Variable substitution** (`${name}`, `${date}`)
+*  **Variable substitution** (`%%name%%`, `%%date%%`)
 *  **Macros** with arguments
-*  **Conditionals & loops** (`@if`, `@for`, etc.)
+*  **Conditionals & loops** (`%%if`, `%%for`, etc.)
 *  **Profiles** (group variables, rules, ignore lists)
 *  **Rules** to control behavior
 *  **Includes** (recursive & safe)
