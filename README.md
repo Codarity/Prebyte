@@ -1,6 +1,6 @@
 # Prebyte – Smart Text Preprocessor
 
-**Prebyte** is a modular, rule-based text preprocessor for configuration files, templates, and structured content. It supports variable substitution, macros, conditions, profiles, rules, includes, and more – from files or directly from strings.
+**Prebyte** is a modular and programmable template-engine for text and file generation – built with rules, macros, profiles, and a clean CLI.
 
 Use it as a **CLI tool** or embed it as a **C++ library**.
 

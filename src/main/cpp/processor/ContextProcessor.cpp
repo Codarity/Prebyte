@@ -433,9 +433,6 @@ void ContextProcessor::set_logger() {
                 console_sink->set_level(spdlog::level::err);
         } else if (cli_struct.log_level == "CRITICAL") {
                 console_sink->set_level(spdlog::level::critical);
-        } else {
-                this->context->logger->error("Invalid log level specified: {}", cli_struct.log_level);
-                end(this->context.get());
         }
 
         console_sink->set_pattern("%^[%l] %v%$");
