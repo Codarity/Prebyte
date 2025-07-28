@@ -108,16 +108,18 @@ void CliParser::process(const std::vector<std::string>& args) {
                 } else if(arg.starts_with("-D")) {
                         if(arg == "-D") throw std::runtime_error("Missing variable definition after -D");
                         this->cli_struct.variables.push_back(arg.substr(2));
-                } else if (arg == "--debug") {
-                        this->cli_struct.rules.push_back("debug_level=DEBUG");
+                } else if (arg == "--trace") {
+                        this->cli_struct.log_level = "TRACE";
+                } else if (arg == "--debug" || arg == "-X") {
+                        this->cli_struct.log_level = "DEBUG";
                 } else if (arg == "--info") {
-                        this->cli_struct.rules.push_back("debug_level=INFO");
-                } else if (arg == "--warn") {
-                        this->cli_struct.rules.push_back("debug_level=WARN");
-                } else if (arg == "--error") {
-                        this->cli_struct.rules.push_back("debug_level=ERROR");
+                        this->cli_struct.log_level = "INFO";
+                } else if (arg == "--warn" || arg == "--warning") {
+                        this->cli_struct.log_level = "WARN";
+                } else if (arg == "--error" || arg == "--err") {
+                        this->cli_struct.log_level = "ERROR";
                 } else if (arg == "--off") {
-                        this->cli_struct.rules.push_back("debug_level=OFF");
+                        this->cli_struct.log_level = "OFF";
                 } else {
                         this->cli_struct.warning_message = "Unknown argument: " + arg;
                 }

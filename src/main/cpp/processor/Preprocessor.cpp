@@ -723,9 +723,9 @@ std::map<std::string,std::string> Preprocessor::get_rules(const Data& rules) {
 }
 
 void Preprocessor::make_benchmark() const {
-        this->context->logger->debug("Making benchmark results");
+        this->context->logger->trace("Making benchmark results");
         if (context->rules.benchmark.value() == Benchmark::NONE) {
-                this->context->logger->debug("Benchmarking is disabled, skipping results.");
+                this->context->logger->trace("Benchmarking is disabled, skipping results.");
                 return;
         }
         std::cout << "______________________________________________________________" << std::endl;

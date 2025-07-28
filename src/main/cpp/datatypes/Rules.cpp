@@ -14,16 +14,18 @@ spdlog::level::level_enum Rules::add_rule(std::string rule_name, const Data& rul
                 this->allow_env = rule_data.as_bool();
         } else if (rule_name == "allow_env_fallback") {
                 this->allow_env_fallback = rule_data.as_bool();
-        } else if (rule_name == "debug_level") {
+        } else if (rule_name == "log_level") {
                 std::string debug_level_str = get_string(rule_data);
-                if (debug_level_str == "ERROR") {
+                if (debug_level_str == "ERROR" || debug_level_str == "ERR") {
                         this->debug_level = spdlog::level::err;
-                } else if (debug_level_str == "WARNING") {
+                } else if (debug_level_str == "WARNING" || debug_level_str == "WARN") {
                         this->debug_level = spdlog::level::warn;
                 } else if (debug_level_str == "INFO") {
                         this->debug_level = spdlog::level::info;
                 } else if (debug_level_str == "DEBUG") {
                         this->debug_level = spdlog::level::debug;
+                } else if (debug_level_str == "TRACE") {
+                        this->debug_level = spdlog::level::trace;
                 } else if (debug_level_str == "OFF") {
                         this->debug_level = spdlog::level::off;
                 } else {

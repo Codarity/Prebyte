@@ -15,6 +15,7 @@ struct CliStruct {
         std::vector<std::string> variables; 
         std::vector<std::string> rules;
         std::vector<std::string> ignore;
+        std::string log_level = "ERROR";
         std::string settings_file;
         std::string error_message;
         std::string warning_message;

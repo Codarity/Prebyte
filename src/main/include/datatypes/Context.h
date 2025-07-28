@@ -20,7 +20,7 @@ struct Context {
         ActionType action_type;
         bool is_api = false;
         std::shared_ptr<spdlog::logger> logger;
-        std::shared_ptr<spdlog::sinks::sink> console_sink;
+        std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink;
         Rules rules;
         std::string input;
         std::string output;

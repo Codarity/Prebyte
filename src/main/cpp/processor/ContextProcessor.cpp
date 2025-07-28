@@ -10,8 +10,8 @@ std::unique_ptr<Context> ContextProcessor::process() {
         this->set_logger();
         this->context->rules.init();
         this->context->start_time = cli_struct.start_time;
-        load_action_type();
         load_settings();
+        load_action_type();
         load_profiles();
         load_variables();
         load_ignore();
@@ -237,8 +237,11 @@ void ContextProcessor::load_rules() {
                         this->context->logger->error("Rule '{}' does not contain '='. Rules must be in the format 'name=value'.", rule);
                         end(this->context.get());
                 }
+
                 std::string rule_name = rule.substr(0, pos);
                 std::string rule_value = rule.substr(pos + 1);
+
+
                 if (rule_name.empty() || rule_value.empty()) {
                         this->context->logger->error("Rule name or value cannot be empty. Rule: '{}'", rule);
                         end(this->context.get());
@@ -251,6 +254,7 @@ void ContextProcessor::load_rules() {
 void ContextProcessor::load_rules(const std::map<std::string, std::string>& rules) {
         this->context->logger->info("Adding rules from settings file");
         for (const auto& [rule_name, rule_data] : rules) {
+                if (rule_name == "log_level" && !this->cli_struct.log_level.empty()) continue;
                 this->context->logger->trace("Found rule: '{}' with value: '{}'", rule_name, rule_data);
                 context->console_sink->set_level(context->rules.add_rule(rule_name, Data(rule_data)));
         }
@@ -409,19 +413,37 @@ void ContextProcessor::set_logger() {
         }
         pid_t pid = getpid();
         auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(expand_tilde("~/.prebyte/prebyte.log"), false);
-        file_sink->set_level(spdlog::level::debug);
-        std::string file_pattern = "%Y-%m-%d %H:%M:%S.%e {" + std::to_string(pid) + "} [%l] %v";
+        file_sink->set_level(spdlog::level::trace);
+        std::string file_pattern = "(%Y-%m-%d %H:%M:%S.%e) {" + std::to_string(pid) + "} [%l] %v";
         file_sink->set_pattern(file_pattern);
 
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
         console_sink->set_level(spdlog::level::err);
+        
+        if (cli_struct.log_level == "TRACE") {
+                console_sink->set_level(spdlog::level::trace);
+        } else if (cli_struct.log_level == "DEBUG") {
+                console_sink->set_level(spdlog::level::debug);
+        } else if (cli_struct.log_level == "INFO") {
+                console_sink->set_level(spdlog::level::info);
+        } else if (cli_struct.log_level == "WARN") {
+                console_sink->set_level(spdlog::level::warn);
+        } else if (cli_struct.log_level == "ERROR") {
+                console_sink->set_level(spdlog::level::err);
+        } else if (cli_struct.log_level == "CRITICAL") {
+                console_sink->set_level(spdlog::level::critical);
+        } else {
+                this->context->logger->error("Invalid log level specified: {}", cli_struct.log_level);
+                end(this->context.get());
+        }
+
         console_sink->set_pattern("%^[%l] %v%$");
 
         context->console_sink = console_sink;
 
         context->logger = std::make_shared<spdlog::logger>("prebyte", spdlog::sinks_init_list{file_sink, console_sink});
-
-        context->logger->debug("Logger initialized with PID: {}", pid);
+        context->logger->set_level(spdlog::level::trace);
 }
 
 std::string ContextProcessor::expand_tilde(const std::string& path) {
